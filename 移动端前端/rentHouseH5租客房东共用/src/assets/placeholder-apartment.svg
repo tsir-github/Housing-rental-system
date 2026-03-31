@@ -1,0 +1,11 @@
+<svg width="200" height="160" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="160" fill="#f7f8fa"/>
+  <g transform="translate(100, 80)">
+    <!-- 房子图标 -->
+    <path d="M-30,-20 L0,-40 L30,-20 L30,20 L-30,20 Z" fill="#c8c9cc" stroke="#969799" stroke-width="1"/>
+    <rect x="-20" y="-10" width="12" height="15" fill="#969799"/>
+    <rect x="8" y="-10" width="12" height="15" fill="#969799"/>
+    <rect x="-6" y="0" width="12" height="20" fill="#969799"/>
+  </g>
+  <text x="100" y="130" text-anchor="middle" fill="#969799" font-size="12" font-family="Arial, sans-serif">暂无图片</text>
+</svg>

@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.app.mapper.LandlordLeaseMapper">
+
+    <resultMap id="landlordLeaseVoMap" type="com.atguigu.lease.web.app.vo.landlord.LandlordLeaseVo" autoMapping="true">
+        <id property="id" column="id"/>
+        <association property="apartmentInfo" javaType="com.atguigu.lease.model.entity.ApartmentInfo" autoMapping="true">
+            <id property="id" column="apartment_id"/>
+            <result property="name" column="apartment_name"/>
+        </association>
+        <association property="roomInfo" javaType="com.atguigu.lease.model.entity.RoomInfo" autoMapping="true">
+            <id property="id" column="room_id"/>
+        </association>
+        <association property="paymentType" javaType="com.atguigu.lease.model.entity.PaymentType" autoMapping="true">
+            <id property="id" column="payment_type_id"/>
+            <result property="name" column="payment_type_name"/>
+        </association>
+        <association property="leaseTerm" javaType="com.atguigu.lease.model.entity.LeaseTerm" autoMapping="true">
+            <id property="id" column="lease_term_id"/>
+        </association>
+    </resultMap>
+
+    <resultMap id="landlordLeaseDetailVoMap" type="com.atguigu.lease.web.app.vo.landlord.LandlordLeaseDetailVo" autoMapping="true">
+        <id property="id" column="id"/>
+        <result property="isExpiringSoon" column="is_expiring_soon"/>
+        <association property="apartmentInfo" javaType="com.atguigu.lease.model.entity.ApartmentInfo" autoMapping="true">
+            <id property="id" column="apartment_id"/>
+            <result property="name" column="apartment_name"/>
+        </association>
+        <association property="roomInfo" javaType="com.atguigu.lease.model.entity.RoomInfo" autoMapping="true">
+            <id property="id" column="room_id"/>
+        </association>
+        <association property="paymentType" javaType="com.atguigu.lease.model.entity.PaymentType" autoMapping="true">
+            <id property="id" column="payment_type_id"/>
+            <result property="name" column="payment_type_name"/>
+        </association>
+        <association property="leaseTerm" javaType="com.atguigu.lease.model.entity.LeaseTerm" autoMapping="true">
+            <id property="id" column="lease_term_id"/>
+        </association>
+    </resultMap>
+
+    <select id="pageLandlordLeaseByQuery" resultMap="landlordLeaseVoMap">
+        SELECT la.id,
+               la.phone,
+               la.name,
+               la.identification_number,
+               la.lease_start_date,
+               la.lease_end_date,
+               la.rent,
+               la.deposit,
+               la.status,
+               la.source_type,
+               la.creator_type,
+               la.creator_id,
+               la.application_id,
+               la.auto_generated,
+               la.additional_info,
+               la.create_time,
+               la.update_time,
+               ai.id   apartment_id,
+               ai.name apartment_name,
+               ai.district_id,
+               ai.district_name,
+               ai.city_id,
+               ai.city_name,
+               ai.province_id,
+               ai.province_name,
+               ri.id   room_id,
+               ri.room_number,
+               pt.id   payment_type_id,
+               pt.name payment_type_name,
+               pt.pay_month_count,
+               lt.id   lease_term_id,
+               lt.month_count,
+               lt.unit,
+               DATEDIFF(la.lease_end_date, CURDATE()) as remaining_days
+        FROM lease_agreement la
+        LEFT JOIN apartment_info ai ON la.apartment_id = ai.id AND ai.is_deleted = 0
+        LEFT JOIN room_info ri ON la.room_id = ri.id AND ri.is_deleted = 0
+        LEFT JOIN payment_type pt ON la.payment_type_id = pt.id AND pt.is_deleted = 0
+        LEFT JOIN lease_term lt ON la.lease_term_id = lt.id AND lt.is_deleted = 0
+        <where>
+            la.is_deleted = 0
+            AND la.creator_type = 2
+            AND la.creator_id = #{landlordId}
+            <if test="queryVo.keyword != null and queryVo.keyword != ''">
+                AND (la.name LIKE CONCAT('%', #{queryVo.keyword}, '%') 
+                     OR la.phone LIKE CONCAT('%', #{queryVo.keyword}, '%')
+                     OR ri.room_number LIKE CONCAT('%', #{queryVo.keyword}, '%'))
+            </if>
+            <if test="queryVo.status != null">
+                AND la.status = #{queryVo.status}
+            </if>
+            <if test="queryVo.sourceType != null">
+                AND la.source_type = #{queryVo.sourceType}
+            </if>
+            <if test="queryVo.apartmentId != null">
+                AND la.apartment_id = #{queryVo.apartmentId}
+            </if>
+            <if test="queryVo.autoGenerated != null">
+                AND la.auto_generated = #{queryVo.autoGenerated}
+            </if>
+        </where>
+        ORDER BY la.create_time DESC
+    </select>
+
+    <select id="selectLandlordLeaseById" resultMap="landlordLeaseVoMap">
+        SELECT la.id,
+               la.phone,
+               la.name,
+               la.identification_number,
+               la.lease_start_date,
+               la.lease_end_date,
+               la.rent,
+               la.deposit,
+               la.status,
+               la.source_type,
+               la.creator_type,
+               la.creator_id,
+               la.application_id,
+               la.auto_generated,
+               la.additional_info,
+               la.create_time,
+               la.update_time,
+               ai.id   apartment_id,
+               ai.name apartment_name,
+               ai.district_id,
+               ai.district_name,
+               ai.city_id,
+               ai.city_name,
+               ai.province_id,
+               ai.province_name,
+               ri.id   room_id,
+               ri.room_number,
+               pt.id   payment_type_id,
+               pt.name payment_type_name,
+               pt.pay_month_count,
+               lt.id   lease_term_id,
+               lt.month_count,
+               lt.unit,
+               DATEDIFF(la.lease_end_date, CURDATE()) as remaining_days
+        FROM lease_agreement la
+        LEFT JOIN apartment_info ai ON la.apartment_id = ai.id AND ai.is_deleted = 0
+        LEFT JOIN room_info ri ON la.room_id = ri.id AND ri.is_deleted = 0
+        LEFT JOIN payment_type pt ON la.payment_type_id = pt.id AND pt.is_deleted = 0
+        LEFT JOIN lease_term lt ON la.lease_term_id = lt.id AND lt.is_deleted = 0
+        WHERE la.id = #{leaseId}
+          AND la.creator_type = 2
+          AND la.creator_id = #{landlordId}
+          AND la.is_deleted = 0
+    </select>
+
+    <select id="selectLandlordLeaseStatistics" resultType="com.atguigu.lease.web.app.vo.landlord.LandlordLeaseStatisticsVo">
+        SELECT 
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as signing,
+            SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as signed,
+            SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) as canceled,
+            SUM(CASE WHEN status = 4 THEN 1 ELSE 0 END) as expired,
+            SUM(CASE WHEN status = 5 THEN 1 ELSE 0 END) as withdrawing,
+            SUM(CASE WHEN status = 6 THEN 1 ELSE 0 END) as withdrawn,
+            SUM(CASE WHEN status = 7 THEN 1 ELSE 0 END) as renewing,
+            SUM(CASE WHEN status = 2 AND DATEDIFF(lease_end_date, CURDATE()) &lt;= 30 AND DATEDIFF(lease_end_date, CURDATE()) &gt; 0 THEN 1 ELSE 0 END) as expiring,
+            SUM(CASE WHEN status IN (2, 5) THEN rent ELSE 0 END) as totalRent,
+            SUM(CASE WHEN status IN (2, 5) THEN deposit ELSE 0 END) as totalDeposit,
+            SUM(CASE WHEN source_type = 1 THEN 1 ELSE 0 END) as newLease,
+            SUM(CASE WHEN source_type = 2 THEN 1 ELSE 0 END) as renewLease,
+            SUM(CASE WHEN source_type = 3 THEN 1 ELSE 0 END) as directApplication,
+            SUM(CASE WHEN auto_generated = 1 THEN 1 ELSE 0 END) as autoGenerated,
+            SUM(CASE WHEN auto_generated = 0 THEN 1 ELSE 0 END) as manualCreated
+        FROM lease_agreement 
+        WHERE creator_type = 2 
+          AND creator_id = #{landlordId}
+          AND is_deleted = 0
+    </select>
+
+    <!-- 查询房东租约状态统计 -->
+    <select id="selectLandlordLeaseStatusStats" resultType="com.atguigu.lease.web.app.vo.landlord.StatusStatVo">
+        SELECT 
+            status,
+            CASE 
+                WHEN status = 1 THEN '签约待确认'
+                WHEN status = 2 THEN '已签约'
+                WHEN status = 3 THEN '已取消'
+                WHEN status = 4 THEN '已到期'
+                WHEN status = 5 THEN '退租待确认'
+                WHEN status = 6 THEN '已退租'
+                WHEN status = 7 THEN '续约待确认'
+                ELSE '未知状态'
+            END as statusName,
+            COUNT(*) as count
+        FROM lease_agreement 
+        WHERE creator_type = 2 
+          AND creator_id = #{landlordId}
+          AND is_deleted = 0
+        GROUP BY status
+        HAVING COUNT(*) > 0
+        ORDER BY status
+    </select>
+
+    <!-- 查询房东租约来源统计 -->
+    <select id="selectLandlordLeaseSourceStats" resultType="com.atguigu.lease.web.app.vo.landlord.SourceStatVo">
+        SELECT 
+            source_type as sourceType,
+            CASE 
+                WHEN source_type = 1 THEN '新签'
+                WHEN source_type = 2 THEN '续约'
+                WHEN source_type = 3 THEN '直接入住申请'
+                ELSE '未知来源'
+            END as sourceTypeName,
+            COUNT(*) as count
+        FROM lease_agreement 
+        WHERE creator_type = 2 
+          AND creator_id = #{landlordId}
+          AND is_deleted = 0
+        GROUP BY source_type
+        HAVING COUNT(*) > 0
+        ORDER BY source_type
+    </select>
+
+    <!-- 验证房东对租约的权限 -->
+    <select id="validateLandlordLeasePermission" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM lease_agreement 
+        WHERE id = #{leaseId}
+          AND creator_type = 2
+          AND creator_id = #{landlordId}
+          AND is_deleted = 0
+    </select>
+
+    <!-- 查询房东租约详情 -->
+    <select id="selectLandlordLeaseDetailById" resultMap="landlordLeaseDetailVoMap">
+        SELECT la.id,
+               la.phone,
+               la.name,
+               la.identification_number,
+               la.lease_start_date,
+               la.lease_end_date,
+               la.rent,
+               la.deposit,
+               la.status,
+               la.source_type,
+               la.creator_type,
+               la.creator_id,
+               la.application_id,
+               la.auto_generated,
+               la.additional_info,
+               la.create_time,
+               la.update_time,
+               ai.id   apartment_id,
+               ai.name apartment_name,
+               ai.district_id,
+               ai.district_name,
+               ai.city_id,
+               ai.city_name,
+               ai.province_id,
+               ai.province_name,
+               ri.id   room_id,
+               ri.room_number,
+               pt.id   payment_type_id,
+               pt.name payment_type_name,
+               pt.pay_month_count,
+               lt.id   lease_term_id,
+               lt.month_count,
+               lt.unit,
+               DATEDIFF(la.lease_end_date, CURDATE()) as remaining_days,
+               CASE WHEN DATEDIFF(la.lease_end_date, CURDATE()) &lt;= 30 AND DATEDIFF(la.lease_end_date, CURDATE()) &gt; 0 THEN 1 ELSE 0 END as is_expiring_soon
+        FROM lease_agreement la
+        LEFT JOIN apartment_info ai ON la.apartment_id = ai.id AND ai.is_deleted = 0
+        LEFT JOIN room_info ri ON la.room_id = ri.id AND ri.is_deleted = 0
+        LEFT JOIN payment_type pt ON la.payment_type_id = pt.id AND pt.is_deleted = 0
+        LEFT JOIN lease_term lt ON la.lease_term_id = lt.id AND lt.is_deleted = 0
+        WHERE la.id = #{leaseId}
+          AND la.creator_type = 2
+          AND la.creator_id = #{landlordId}
+          AND la.is_deleted = 0
+    </select>
+
+    <!-- 查询房东即将到期的租约 -->
+    <select id="selectLandlordExpiringLeases" resultMap="landlordLeaseVoMap">
+        SELECT la.id,
+               la.phone,
+               la.name,
+               la.identification_number,
+               la.lease_start_date,
+               la.lease_end_date,
+               la.rent,
+               la.deposit,
+               la.status,
+               la.source_type,
+               la.creator_type,
+               la.creator_id,
+               la.application_id,
+               la.auto_generated,
+               la.additional_info,
+               la.create_time,
+               la.update_time,
+               ai.id   apartment_id,
+               ai.name apartment_name,
+               ai.district_id,
+               ai.district_name,
+               ai.city_id,
+               ai.city_name,
+               ai.province_id,
+               ai.province_name,
+               ri.id   room_id,
+               ri.room_number,
+               pt.id   payment_type_id,
+               pt.name payment_type_name,
+               pt.pay_month_count,
+               lt.id   lease_term_id,
+               lt.month_count,
+               lt.unit,
+               DATEDIFF(la.lease_end_date, CURDATE()) as remaining_days
+        FROM lease_agreement la
+        LEFT JOIN apartment_info ai ON la.apartment_id = ai.id AND ai.is_deleted = 0
+        LEFT JOIN room_info ri ON la.room_id = ri.id AND ri.is_deleted = 0
+        LEFT JOIN payment_type pt ON la.payment_type_id = pt.id AND pt.is_deleted = 0
+        LEFT JOIN lease_term lt ON la.lease_term_id = lt.id AND lt.is_deleted = 0
+        WHERE la.creator_type = 2
+          AND la.creator_id = #{landlordId}
+          AND la.status = 2
+          AND la.lease_end_date &lt;= #{expirationDate}
+          AND la.lease_end_date &gt; CURDATE()
+          AND la.is_deleted = 0
+        ORDER BY la.lease_end_date ASC
+    </select>
+
+</mapper>

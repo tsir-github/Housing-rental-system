@@ -1,0 +1,308 @@
+<template>
+  <van-skeleton :row="20" :loading="loading">
+    <div class="page-container min-h-[100vh] py-[15px]">
+      <!-- 错误状态显示 -->
+      <div v-if="error && !loading" class="error-container">
+        <van-empty 
+          image="error" 
+          :description="error"
+        >
+          <van-button 
+            type="primary" 
+            size="small" 
+            @click="getApartmentDetailHandle"
+          >
+            重新加载
+          </van-button>
+        </van-empty>
+      </div>
+      
+      <!-- 正常内容 -->
+      <template v-else-if="!loading && apartmentDetailInfo?.id">
+        <!--    预约公寓-->
+        <div>
+          <div class="base-info-title main-container py-[4px]">预约公寓</div>
+          <div class="my-[5px] px-[15px]">
+            <ApartmentCard :data="apartmentDetailInfo"></ApartmentCard>
+          </div>
+        </div>
+        <!--    预约信息-->
+        <div>
+          <div class="base-info-title main-container py-[4px]">预约信息</div>
+          <div class="my-[5px] relative">
+            <van-form @submit="onSubmit">
+              <van-cell-group inset>
+                <!--            姓名-->
+                <van-field
+                  v-model.trim="formData.name"
+                  name="name"
+                  label="姓名"
+                  autocomplete="off"
+                  placeholder="请输入姓名"
+                  :rules="[{ required: true, message: '请填写姓名' }]"
+                />
+                <!--            手机号-->
+                <van-field
+                  v-model.trim="formData.phone"
+                  name="phone"
+                  label="手机号"
+                  type="tel"
+                  autocomplete="off"
+                  placeholder="请输入手机号"
+                  :rules="[
+                    {
+                      required: true,
+                      pattern: /^1([3589]\d|4[5-9]|6[1-2,4-7]|7[0-8])\d{8}$/,
+                      message: '请正确填写手机号'
+                    }
+                  ]"
+                />
+                <!--            预约日期-->
+                <van-field
+                  v-model="formData.date"
+                  is-link
+                  readonly
+                  name="date"
+                  label="预约日期"
+                  placeholder="点击选择日期"
+                  @click="showDate = true"
+                  :rules="[{ required: true, message: '请选择预约日期' }]"
+                />
+                <van-popup v-model:show="showDate" position="bottom">
+                  <van-date-picker
+                    :min-date="new Date()"
+                    @confirm="onConfirmAppointmentDateHandle"
+                    @cancel="showDate = false"
+                  />
+                </van-popup>
+                <!--            预约时间-->
+                <van-field
+                  v-model="formData.time"
+                  is-link
+                  readonly
+                  name="time"
+                  label="预约时间"
+                  placeholder="点击选择时间"
+                  @click="showTime = true"
+                  :rules="[{ required: true, message: '请选择预约时间' }]"
+                />
+                <van-popup v-model:show="showTime" position="bottom">
+                  <van-time-picker
+                    v-model="dateInfo.time"
+                    title="选择时间"
+                    @confirm="onConfirmAppointmentTimeHandle"
+                    @cancel="showDate = false"
+                    :columns-type="['hour', 'minute', 'second']"
+                /></van-popup>
+                <!--            备注信息-->
+                <van-field
+                  v-model.trim="formData.additionalInfo"
+                  name="additionalInfo"
+                  label="备注信息"
+                  rows="3"
+                  autosize
+                  type="textarea"
+                  autocomplete="off"
+                  placeholder="请输入备注信息"
+                  show-word-limit
+                  maxlength="50"
+                />
+              </van-cell-group>
+              <div class="mt-[50px] main-container">
+                <van-button round block type="primary" native-type="submit">
+                  {{ formData.id ? "重新预约" : "预约看房" }}
+                </van-button>
+              </div>
+            </van-form>
+          </div>
+        </div>
+        <div class="absolute bottom-0"></div>
+      </template>
+    </div>
+  </van-skeleton>
+</template>
+<script setup lang="ts" name="TenantAppointment">
+import {
+  getApartmentDetailById,
+  getAppointmentDetailById
+} from "@/api/tenant/search";
+import { saveOrUpdateAppointment } from "@/api/tenant/appointment";
+import { onMounted, ref, watch } from "vue";
+import dayjs from "dayjs";
+import type {
+  ApartmentInterface,
+  AppointmentQueryInterface
+} from "@/api/tenant/search/types";
+import { useRoute, useRouter } from "vue-router";
+import ApartmentCard from "@/components/common/ApartmentCard/ApartmentCard.vue";
+import { AppointmentStatus } from "@/enums/constEnums";
+import { showToast } from "vant";
+const route = useRoute();
+const router = useRouter();
+
+// 加载状态
+const loading = ref(true);
+const error = ref('');
+
+// 公寓的详情信息
+const apartmentDetailInfo = ref<ApartmentInterface>({} as ApartmentInterface);
+
+// 获取公寓的详情信息
+const getApartmentDetailHandle = async () => {
+  try {
+    loading.value = true;
+    error.value = '';
+    
+    const apartmentId = route.query.apartmentId as string;
+    if (!apartmentId) {
+      throw new Error('缺少公寓ID参数');
+    }
+    
+    console.log('正在获取公寓详情，ID:', apartmentId);
+    const { data } = await getApartmentDetailById(apartmentId);
+    
+    if (!data) {
+      throw new Error('公寓信息不存在');
+    }
+    
+    apartmentDetailInfo.value = data;
+    console.log('公寓详情获取成功:', data);
+    
+  } catch (err) {
+    console.error('获取公寓详情失败:', err);
+    error.value = err instanceof Error ? err.message : '获取公寓信息失败';
+    showToast(error.value);
+  } finally {
+    loading.value = false;
+  }
+};
+//#region <form表单相关>
+// 预约信息
+const formData = ref<
+  AppointmentQueryInterface & { date: string; time: string }
+>({
+  id: "",
+  name: "",
+  phone: "",
+  apartmentId: (route.query.apartmentId as string) || "",
+  roomId: (route.query.roomId as string) || "", // 添加房间ID
+  appointmentTime: "",
+  additionalInfo: "",
+  appointmentStatus: AppointmentStatus.WAITING,
+  date: "",
+  time: ""
+});
+// 日期选择器
+const dateInfo = ref({
+  date: [
+    dayjs().get("year").toString(),
+    (dayjs().get("month") + 1).toString().padStart(2, "0"),
+    dayjs().get("date").toString().padStart(2, "0")
+  ],
+  time: [
+    dayjs().get("hour").toString().padStart(2, "0"),
+    dayjs().get("minute").toString().padStart(2, "0"),
+    dayjs().get("second").toString().padStart(2, "0")
+  ]
+});
+// 监视dateInfo
+watch(
+  dateInfo,
+  (newVal, oldVal) => {
+    console.log("newVal", newVal);
+    console.log("oldVal", oldVal);
+    formData.value.date = newVal.date.join("-");
+    formData.value.time = `${newVal.time.join(":")}`;
+    formData.value.appointmentTime = `${formData.value.date} ${formData.value.time}`;
+  },
+  { immediate: true, deep: true }
+);
+const showDate = ref(false);
+const onConfirmAppointmentDateHandle = (date: any) => {
+  console.log("date", date);
+  dateInfo.value.date = date.selectedValues;
+  showDate.value = false;
+};
+// 时间选择器
+const showTime = ref(false);
+const onConfirmAppointmentTimeHandle = (date: any) => {
+  console.log("date", date);
+  showTime.value = false;
+};
+// 提交表单
+async function onSubmit(values: any) {
+  console.log("submit", values);
+  await saveOrUpdateAppointment(formData.value);
+  showToast("操作成功");
+  route.query.apartmentId
+    ? await router.replace("/tenant/myAppointment")
+    : await router.back();
+}
+
+//#endregion
+// 预约信息
+async function getAppointmentDetailHandle() {
+  try {
+    loading.value = true;
+    error.value = '';
+    
+    const appointmentId = route.query.appointmentId as string;
+    if (!appointmentId) {
+      throw new Error('缺少预约ID参数');
+    }
+    
+    console.log('正在获取预约详情，ID:', appointmentId);
+    const { data } = await getAppointmentDetailById(appointmentId);
+    
+    if (!data) {
+      throw new Error('预约信息不存在');
+    }
+    
+    // 填充表单数据
+    Object.keys(formData.value).forEach(key => {
+      (formData.value as any)[key] = (data as any)[key];
+    });
+    
+    // 单独处理日期
+    if (data.appointmentTime) {
+      dateInfo.value.date = data.appointmentTime.split(" ")[0].split("-");
+      dateInfo.value.time = data.appointmentTime.split(" ")[1].split(":");
+    }
+    
+    // 设置公寓信息
+    apartmentDetailInfo.value = data.apartmentItemVo;
+    console.log('预约详情获取成功:', data);
+    
+  } catch (err) {
+    console.error('获取预约详情失败:', err);
+    error.value = err instanceof Error ? err.message : '获取预约信息失败';
+    showToast(error.value);
+  } finally {
+    loading.value = false;
+  }
+}
+onMounted(async () => {
+  route.query.apartmentId && (await getApartmentDetailHandle());
+  route.query.appointmentId && (await getAppointmentDetailHandle());
+});
+</script>
+
+<style scoped lang="less">
+.base-info-title {
+  //background-color: var(--van-primary-background-color);
+  font-weight: bold;
+  //color: white;
+}
+
+::v-deep .van-card {
+  background: var(--van-background-2) !important;
+}
+
+.error-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  padding: 20px;
+}
+</style>

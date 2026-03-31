@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.app.mapper.ViewAppointmentMapper">
+
+    <resultMap id="AppointmentItemVoMap" type="com.atguigu.lease.web.app.vo.appointment.AppointmentItemVo" autoMapping="true">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="name" property="name"/>
+        <result column="phone" property="phone"/>
+        <result column="apartment_name" property="apartmentName"/>
+        <result column="room_number" property="roomNumber"/>
+        <result column="appointment_time" property="appointmentTime"/>
+        <result column="appointment_status" property="appointmentStatus"/>
+        <result column="guide_type" property="guideType"/>
+        <result column="guide_id" property="guideId"/>
+        <result column="additional_info" property="additionalInfo"/>
+        <collection property="graphVoList" ofType="com.atguigu.lease.web.app.vo.graph.GraphVo" autoMapping="true"/>
+    </resultMap>
+    <select id="listItemByUserId" resultMap="AppointmentItemVoMap">
+        select va.id,
+               va.appointment_time,
+               va.appointment_status,
+               va.guide_type,
+               va.guide_id,
+               ai.name apartment_name,
+               gi.name,
+               gi.url
+        from view_appointment va
+                 left join apartment_info ai on va.apartment_id = ai.id and ai.is_deleted = 0
+                 left join graph_info gi on gi.item_type = 1 and gi.item_id = ai.id and gi.is_deleted = 0
+        where va.is_deleted = 0
+          and va.user_id = #{userId}
+        order by va.create_time desc
+    </select>
+
+    <select id="listByGuideType" resultMap="AppointmentItemVoMap">
+        select va.id,
+               va.user_id,
+               va.name,
+               va.phone,
+               va.appointment_time,
+               va.additional_info,
+               va.appointment_status,
+               va.guide_type,
+               va.guide_id,
+               ai.name apartment_name,
+               gi.name,
+               gi.url
+        from view_appointment va
+                 left join apartment_info ai on va.apartment_id = ai.id and ai.is_deleted = 0
+                 left join graph_info gi on gi.item_type = 1 and gi.item_id = ai.id and gi.is_deleted = 0
+        where va.is_deleted = 0
+          and va.guide_type = #{guideType}
+        order by va.appointment_time desc
+    </select>
+
+    <select id="listByGuideTypeAndId" resultMap="AppointmentItemVoMap">
+        select va.id,
+               va.user_id,
+               va.name,
+               va.phone,
+               va.appointment_time,
+               va.additional_info,
+               va.appointment_status,
+               va.guide_type,
+               va.guide_id,
+               ai.name apartment_name,
+               gi.name,
+               gi.url
+        from view_appointment va
+                 left join apartment_info ai on va.apartment_id = ai.id and ai.is_deleted = 0
+                 left join graph_info gi on gi.item_type = 1 and gi.item_id = ai.id and gi.is_deleted = 0
+        where va.is_deleted = 0
+          and va.guide_type = #{guideType}
+          and va.guide_id = #{guideId}
+        order by va.appointment_time desc
+    </select>
+
+    <select id="listByRoomId" resultMap="AppointmentItemVoMap">
+        select va.id,
+               va.user_id,
+               va.name,
+               va.phone,
+               va.appointment_time,
+               va.additional_info,
+               va.appointment_status,
+               va.guide_type,
+               va.guide_id,
+               ai.name apartment_name,
+               gi.name,
+               gi.url
+        from view_appointment va
+                 left join apartment_info ai on va.apartment_id = ai.id and ai.is_deleted = 0
+                 left join graph_info gi on gi.item_type = 1 and gi.item_id = ai.id and gi.is_deleted = 0
+        where va.is_deleted = 0
+          and va.room_id = #{roomId}
+        order by va.appointment_time desc
+    </select>
+
+    <select id="selectLandlordAppointments" resultMap="AppointmentItemVoMap">
+        select va.id,
+               va.user_id,
+               va.name,
+               va.phone,
+               va.appointment_time,
+               va.additional_info,
+               va.appointment_status,
+               va.guide_type,
+               va.guide_id,
+               ai.name apartment_name,
+               ri.room_number,
+               gi.name,
+               gi.url
+        from view_appointment va
+                 left join room_info ri on va.room_id = ri.id and ri.is_deleted = 0
+                 left join apartment_info ai on va.apartment_id = ai.id and ai.is_deleted = 0
+                 left join graph_info gi on gi.item_type = 1 and gi.item_id = ai.id and gi.is_deleted = 0
+        where va.is_deleted = 0
+          and ri.publisher_id = #{landlordId}
+          and ri.publisher_type = 2
+          and va.guide_type = 2  -- 只显示选择房东带看的预约
+          and va.guide_id = #{landlordId}  -- 确保带看人就是该房东
+          <if test="status != null">
+              and va.appointment_status = #{status}
+          </if>
+        order by va.appointment_time desc
+    </select>
+
+    <select id="selectLandlordAppointmentsList" resultMap="AppointmentItemVoMap">
+        select va.id,
+               va.user_id,
+               va.name,
+               va.phone,
+               va.appointment_time,
+               va.additional_info,
+               va.appointment_status,
+               va.guide_type,
+               va.guide_id,
+               ai.name apartment_name,
+               ri.room_number,
+               gi.name,
+               gi.url
+        from view_appointment va
+                 left join room_info ri on va.room_id = ri.id and ri.is_deleted = 0
+                 left join apartment_info ai on va.apartment_id = ai.id and ai.is_deleted = 0
+                 left join graph_info gi on gi.item_type = 1 and gi.item_id = ai.id and gi.is_deleted = 0
+        where va.is_deleted = 0
+          and ri.publisher_id = #{landlordId}
+          and ri.publisher_type = 2
+          and va.guide_type = 2  -- 只显示选择房东带看的预约
+          and va.guide_id = #{landlordId}  -- 确保带看人就是该房东
+          <if test="status != null">
+              and va.appointment_status = #{status}
+          </if>
+        order by va.appointment_time desc
+    </select>
+
+    <select id="countLandlordAppointments" resultType="long">
+        select count(*)
+        from view_appointment va
+                 left join room_info ri on va.room_id = ri.id and ri.is_deleted = 0
+        where va.is_deleted = 0
+          and ri.publisher_id = #{landlordId}
+          and ri.publisher_type = 2
+          and va.guide_type = 2  -- 只统计选择房东带看的预约
+          and va.guide_id = #{landlordId}  -- 确保带看人就是该房东
+    </select>
+
+    <select id="countLandlordAppointmentsByStatus" resultType="long">
+        select count(*)
+        from view_appointment va
+                 left join room_info ri on va.room_id = ri.id and ri.is_deleted = 0
+        where va.is_deleted = 0
+          and ri.publisher_id = #{landlordId}
+          and ri.publisher_type = 2
+          and va.guide_type = 2  -- 只统计选择房东带看的预约
+          and va.guide_id = #{landlordId}  -- 确保带看人就是该房东
+          and va.appointment_status = #{status}
+    </select>
+
+    <select id="countLandlordTodayAppointments" resultType="long">
+        select count(*)
+        from view_appointment va
+                 left join room_info ri on va.room_id = ri.id and ri.is_deleted = 0
+        where va.is_deleted = 0
+          and ri.publisher_id = #{landlordId}
+          and ri.publisher_type = 2
+          and va.guide_type = 2  -- 只统计选择房东带看的预约
+          and va.guide_id = #{landlordId}  -- 确保带看人就是该房东
+          and DATE(va.appointment_time) = CURDATE()
+    </select>
+</mapper>

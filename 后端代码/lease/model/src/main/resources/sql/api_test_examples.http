@@ -1,0 +1,111 @@
+# API测试示例
+# 使用VS Code的REST Client插件或Postman执行
+
+### 变量定义
+@baseUrl = http://localhost:8080
+@adminToken = your_admin_token_here
+
+### 1. 获取房源审核列表
+GET {{baseUrl}}/admin/room-review/list?current=1&size=10
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+### 2. 提交房源审核
+POST {{baseUrl}}/admin/room-review/submit
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "roomId": 1,
+  "reviewComments": "房源信息完整，照片清晰，位置优越",
+  "reviewCriteria": {
+    "location": 9,
+    "facilities": 8,
+    "photos": 9,
+    "description": 8,
+    "pricing": 8
+  }
+}
+
+### 3. 获取房源审核详情
+GET {{baseUrl}}/admin/room-review/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+### 4. 获取直接入住申请列表
+GET {{baseUrl}}/admin/direct-move-in/list?current=1&size=10
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+### 5. 处理直接入住申请
+PUT {{baseUrl}}/admin/direct-move-in/process/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "APPROVED",
+  "processNotes": "申请理由充分，同意直接入住"
+}
+
+### 6. 获取直接入住申请详情
+GET {{baseUrl}}/admin/direct-move-in/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+### 7. 获取房东权限列表
+GET {{baseUrl}}/admin/landlord-permission/list?current=1&size=10
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+### 8. 更新房东权限
+PUT {{baseUrl}}/admin/landlord-permission/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "canPublishRooms": true,
+  "canManageReviews": false,
+  "canHandleApplications": true,
+  "permissionLevel": "LIMITED",
+  "expiresAt": "2025-12-31T23:59:59"
+}
+
+### 9. 授予房东权限
+POST {{baseUrl}}/admin/landlord-permission/grant
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "landlordId": 2,
+  "canPublishRooms": true,
+  "canManageReviews": true,
+  "canHandleApplications": true,
+  "permissionLevel": "FULL",
+  "expiresAt": "2025-12-31T23:59:59"
+}
+
+### 10. 测试错误情况 - 无效的房间ID
+POST {{baseUrl}}/admin/room-review/submit
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "roomId": 99999,
+  "reviewComments": "测试无效房间ID",
+  "reviewCriteria": {
+    "location": 5,
+    "facilities": 5,
+    "photos": 5,
+    "description": 5,
+    "pricing": 5
+  }
+}
+
+### 11. 测试权限验证 - 无token访问
+GET {{baseUrl}}/admin/room-review/list
+Content-Type: application/json
+
+### 12. 批量查询测试
+GET {{baseUrl}}/admin/room-review/list?reviewStatus=PENDING&publisherType=LANDLORD
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json

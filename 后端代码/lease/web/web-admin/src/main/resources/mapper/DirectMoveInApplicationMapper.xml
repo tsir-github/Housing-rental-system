@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.admin.mapper.DirectMoveInApplicationMapper">
+
+    <!-- 查询待处理申请（包含关联信息） -->
+    <select id="selectPendingApplicationsWithDetails" resultType="com.atguigu.lease.web.admin.vo.application.DirectMoveInApplicationDetailVO">
+        SELECT 
+            dma.id,
+            dma.user_id,
+            dma.room_id,
+            dma.apartment_id,
+            dma.landlord_id,
+            dma.name,
+            dma.phone,
+            dma.identification_number,
+            dma.email,
+            dma.emergency_contact,
+            dma.emergency_phone,
+            dma.lease_start_date,
+            dma.lease_end_date,
+            dma.lease_term_id,
+            dma.rent,
+            dma.deposit,
+            dma.payment_type_id,
+            dma.status,
+            dma.processor_id,
+            dma.processor_type,
+            dma.rejection_reason,
+            dma.processed_at,
+            dma.additional_info,
+            dma.create_time,
+            dma.update_time,
+            -- 关联信息
+            ri.room_number,
+            ai.name as apartment_name,
+            lt.name as lease_term_name,
+            pt.name as payment_type_name,
+            ui.nickname as landlord_name,
+            ui.phone as landlord_phone,
+            CASE 
+                WHEN dma.landlord_id IS NULL THEN 1 
+                ELSE 2 
+            END as publisher_type,
+            CASE 
+                WHEN dma.landlord_id IS NULL THEN '官方房源' 
+                ELSE '房东房源' 
+            END as publisher_type_name,
+            CASE 
+                WHEN dma.processor_type = 1 THEN su.name
+                WHEN dma.processor_type = 2 THEN ui2.nickname
+                ELSE NULL
+            END as processor_name
+        FROM direct_move_in_application dma
+        LEFT JOIN room_info ri ON dma.room_id = ri.id
+        LEFT JOIN apartment_info ai ON dma.apartment_id = ai.id
+        LEFT JOIN lease_term lt ON dma.lease_term_id = lt.id
+        LEFT JOIN payment_type pt ON dma.payment_type_id = pt.id
+        LEFT JOIN user_info ui ON dma.landlord_id = ui.id
+        LEFT JOIN system_user su ON dma.processor_id = su.id AND dma.processor_type = 1
+        LEFT JOIN user_info ui2 ON dma.processor_id = ui2.id AND dma.processor_type = 2
+        WHERE dma.status = 1
+          AND dma.is_deleted = 0
+        <if test="processorId != null">
+            AND dma.processor_id = #{processorId}
+        </if>
+        <if test="processorType != null">
+            AND dma.processor_type = #{processorType}
+        </if>
+        <if test="publisherType != null">
+            <if test="publisherType == 1">
+                AND dma.landlord_id IS NULL
+            </if>
+            <if test="publisherType == 2">
+                AND dma.landlord_id IS NOT NULL
+            </if>
+        </if>
+        ORDER BY dma.create_time DESC
+    </select>
+
+    <!-- 查询申请历史（包含关联信息） -->
+    <select id="selectApplicationHistoryWithDetails" resultType="com.atguigu.lease.web.admin.vo.application.DirectMoveInApplicationDetailVO">
+        SELECT 
+            dma.id,
+            dma.user_id,
+            dma.room_id,
+            dma.apartment_id,
+            dma.landlord_id,
+            dma.name,
+            dma.phone,
+            dma.identification_number,
+            dma.email,
+            dma.emergency_contact,
+            dma.emergency_phone,
+            dma.lease_start_date,
+            dma.lease_end_date,
+            dma.lease_term_id,
+            dma.rent,
+            dma.deposit,
+            dma.payment_type_id,
+            dma.status,
+            dma.processor_id,
+            dma.processor_type,
+            dma.rejection_reason,
+            dma.processed_at,
+            dma.additional_info,
+            dma.create_time,
+            dma.update_time,
+            -- 关联信息
+            ri.room_number,
+            ai.name as apartment_name,
+            lt.name as lease_term_name,
+            pt.name as payment_type_name,
+            ui.nickname as landlord_name,
+            ui.phone as landlord_phone,
+            CASE 
+                WHEN dma.landlord_id IS NULL THEN 1 
+                ELSE 2 
+            END as publisher_type,
+            CASE 
+                WHEN dma.landlord_id IS NULL THEN '官方房源' 
+                ELSE '房东房源' 
+            END as publisher_type_name,
+            CASE 
+                WHEN dma.processor_type = 1 THEN su.name
+                WHEN dma.processor_type = 2 THEN ui2.nickname
+                ELSE NULL
+            END as processor_name
+        FROM direct_move_in_application dma
+        LEFT JOIN room_info ri ON dma.room_id = ri.id
+        LEFT JOIN apartment_info ai ON dma.apartment_id = ai.id
+        LEFT JOIN lease_term lt ON dma.lease_term_id = lt.id
+        LEFT JOIN payment_type pt ON dma.payment_type_id = pt.id
+        LEFT JOIN user_info ui ON dma.landlord_id = ui.id
+        LEFT JOIN system_user su ON dma.processor_id = su.id AND dma.processor_type = 1
+        LEFT JOIN user_info ui2 ON dma.processor_id = ui2.id AND dma.processor_type = 2
+        WHERE dma.is_deleted = 0
+        <if test="userId != null">
+            AND dma.user_id = #{userId}
+        </if>
+        <if test="status != null">
+            AND dma.status = #{status}
+        </if>
+        <if test="processorId != null">
+            AND dma.processor_id = #{processorId}
+        </if>
+        <if test="processorType != null">
+            AND dma.processor_type = #{processorType}
+        </if>
+        <if test="publisherType != null">
+            <if test="publisherType == 1">
+                AND dma.landlord_id IS NULL
+            </if>
+            <if test="publisherType == 2">
+                AND dma.landlord_id IS NOT NULL
+            </if>
+        </if>
+        ORDER BY dma.create_time DESC
+    </select>
+
+    <!-- 根据ID查询申请详情（包含关联信息） -->
+    <select id="selectApplicationDetailById" resultType="com.atguigu.lease.web.admin.vo.application.DirectMoveInApplicationDetailVO">
+        SELECT 
+            dma.id,
+            dma.user_id,
+            dma.room_id,
+            dma.apartment_id,
+            dma.landlord_id,
+            dma.name,
+            dma.phone,
+            dma.identification_number,
+            dma.email,
+            dma.emergency_contact,
+            dma.emergency_phone,
+            dma.lease_start_date,
+            dma.lease_end_date,
+            dma.lease_term_id,
+            dma.rent,
+            dma.deposit,
+            dma.payment_type_id,
+            dma.status,
+            dma.processor_id,
+            dma.processor_type,
+            dma.rejection_reason,
+            dma.processed_at,
+            dma.additional_info,
+            dma.create_time,
+            dma.update_time,
+            -- 关联信息
+            ri.room_number,
+            ai.name as apartment_name,
+            lt.name as lease_term_name,
+            pt.name as payment_type_name,
+            ui.nickname as landlord_name,
+            ui.phone as landlord_phone,
+            CASE 
+                WHEN dma.landlord_id IS NULL THEN 1 
+                ELSE 2 
+            END as publisher_type,
+            CASE 
+                WHEN dma.landlord_id IS NULL THEN '官方房源' 
+                ELSE '房东房源' 
+            END as publisher_type_name,
+            CASE 
+                WHEN dma.processor_type = 1 THEN su.name
+                WHEN dma.processor_type = 2 THEN ui2.nickname
+                ELSE NULL
+            END as processor_name
+        FROM direct_move_in_application dma
+        LEFT JOIN room_info ri ON dma.room_id = ri.id
+        LEFT JOIN apartment_info ai ON dma.apartment_id = ai.id
+        LEFT JOIN lease_term lt ON dma.lease_term_id = lt.id
+        LEFT JOIN payment_type pt ON dma.payment_type_id = pt.id
+        LEFT JOIN user_info ui ON dma.landlord_id = ui.id
+        LEFT JOIN system_user su ON dma.processor_id = su.id AND dma.processor_type = 1
+        LEFT JOIN user_info ui2 ON dma.processor_id = ui2.id AND dma.processor_type = 2
+        WHERE dma.id = #{id}
+          AND dma.is_deleted = 0
+    </select>
+
+    <select id="selectByProcessorIdAndType" resultType="com.atguigu.lease.model.entity.DirectMoveInApplication">
+        SELECT *
+        FROM direct_move_in_application
+        WHERE processor_id = #{processorId}
+          AND processor_type = #{processorType}
+          AND is_deleted = 0
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectByLandlordId" resultType="com.atguigu.lease.model.entity.DirectMoveInApplication">
+        SELECT *
+        FROM direct_move_in_application
+        WHERE landlord_id = #{landlordId}
+          AND is_deleted = 0
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectByUserId" resultType="com.atguigu.lease.model.entity.DirectMoveInApplication">
+        SELECT *
+        FROM direct_move_in_application
+        WHERE user_id = #{userId}
+          AND is_deleted = 0
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectPendingApplications" resultType="com.atguigu.lease.model.entity.DirectMoveInApplication">
+        SELECT *
+        FROM direct_move_in_application
+        WHERE status = 1
+          AND is_deleted = 0
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectApplicationStatistics" resultType="java.util.Map">
+        SELECT 
+            status,
+            processor_type,
+            COUNT(*) as count,
+            AVG(rent) as avg_rent
+        FROM direct_move_in_application
+        WHERE is_deleted = 0
+        GROUP BY status, processor_type
+    </select>
+
+</mapper>

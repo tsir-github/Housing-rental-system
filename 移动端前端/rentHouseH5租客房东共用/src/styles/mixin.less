@@ -1,0 +1,31 @@
+// 清除浮动
+.clearfix() {
+  &:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+}
+
+// 文本省略
+.text-ellipsis() {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// 多行文本省略
+.text-ellipsis-multi(@lines: 2) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: @lines;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// 居中对齐
+.center() {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

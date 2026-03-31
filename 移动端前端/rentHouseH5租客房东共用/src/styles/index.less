@@ -1,0 +1,199 @@
+@import './variables.less';
+@import "textStyle";
+@import "roomAvailability.less";
+
+body {
+  height: 100%;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Arial, sans-serif;
+  color: var(--van-text-color);
+  background-color: var(--color-background-2);
+  font-size: 14px;
+}
+
+html {
+  height: 100%;
+  box-sizing: border-box;
+}
+
+#app {
+  height: 100%;
+}
+
+a,
+a:focus,
+a:hover {
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+}
+
+.main-container {
+  padding: 0 20px;
+  width: 100vw;
+}
+
+.comment-padding {
+  padding: 0 20px;
+}
+
+.card {
+  position: relative;
+  box-sizing: border-box;
+  padding: var(--van-card-padding);
+  color: var(--van-card-text-color);
+  background: var(--van-card-background);
+  border-radius: 10px;
+  margin: 10px;
+}
+
+.page-container {
+  background-color: var(--color-block-background);
+}
+
+/* 定义 覆盖vant样式*/
+:root:root {
+  --van-primary-color: #277941;
+}
+
+/* 全局按钮样式修复 - 确保按钮文字可见 */
+.van-button {
+  font-size: 14px !important;
+  line-height: 1.2 !important;
+  font-weight: 400 !important;
+  
+  /* 确保按钮文字不会被隐藏 */
+  .van-button__text {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    color: inherit !important;
+    font-size: inherit !important;
+    font-weight: inherit !important;
+  }
+  
+  /* 强制显示按钮内容 */
+  &::before,
+  &::after {
+    display: none !important;
+  }
+  
+  /* 确保按钮内容可见 */
+  * {
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+}
+
+.van-button--primary {
+  background-color: var(--van-primary-color) !important;
+  color: #fff !important;
+  border: none !important;
+
+  &:disabled {
+    background-color: #c8c9cc !important;
+    color: #fff !important;
+  }
+
+  &.van-button--loading {
+    background-color: var(--van-primary-color) !important;
+    color: #fff !important;
+  }
+}
+
+.van-button--default {
+  background-color: #fff !important;
+  color: #323233 !important;
+  border: 1px solid #ebedf0 !important;
+  
+  &:hover {
+    background-color: #f7f8fa !important;
+  }
+}
+
+.van-button--warning {
+  background-color: #ff976a !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+.van-button--danger {
+  background-color: #ee0a24 !important;
+  color: #fff !important;
+  border: none !important;
+  
+  &.van-button--plain {
+    background-color: transparent !important;
+    color: #ee0a24 !important;
+    border: 1px solid #ee0a24 !important;
+  }
+}
+
+/* 修复登录页面的蓝色按钮 */
+.login-container .van-button--primary {
+  background-color: #1989fa !important;
+  color: #fff !important;
+
+  &:disabled {
+    background-color: #c8c9cc !important;
+    color: #fff !important;
+  }
+
+  &.van-button--loading {
+    background-color: #1989fa !important;
+    color: #fff !important;
+  }
+}
+
+/* 小尺寸按钮样式 */
+.van-button--small {
+  font-size: 12px !important;
+  padding: 0 8px !important;
+  height: 28px !important;
+  line-height: 26px !important;
+  
+  &.van-button--primary {
+    background-color: var(--van-primary-color) !important;
+    color: #fff !important;
+
+    &:disabled {
+      background-color: #c8c9cc !important;
+      color: #fff !important;
+    }
+  }
+  
+  &.van-button--default {
+    background-color: #fff !important;
+    color: #323233 !important;
+    border: 1px solid #ebedf0 !important;
+  }
+  
+  &.van-button--warning {
+    background-color: #ff976a !important;
+    color: #fff !important;
+  }
+  
+  &.van-button--danger {
+    background-color: #ee0a24 !important;
+    color: #fff !important;
+    
+    &.van-button--plain {
+      background-color: transparent !important;
+      color: #ee0a24 !important;
+      border: 1px solid #ee0a24 !important;
+    }
+  }
+}
+
+/* 确保底部导航栏始终固定在底部 */
+.van-tabbar {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 1000 !important;
+  background-color: #fff !important;
+  border-top: 1px solid #ebedf0 !important;
+}

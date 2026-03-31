@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.app.mapper.AiConversationMapper">
+
+    <!-- 基础字段映射 -->
+    <resultMap id="BaseResultMap" type="com.atguigu.lease.model.entity.AiConversation">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="user_id" jdbcType="BIGINT" property="userId"/>
+        <result column="message_type" jdbcType="VARCHAR" property="messageType"/>
+        <result column="message" jdbcType="LONGVARCHAR" property="message"/>
+        <result column="ai_model" jdbcType="VARCHAR" property="aiModel"/>
+        <result column="tokens_used" jdbcType="INTEGER" property="tokensUsed"/>
+        <result column="response_time" jdbcType="INTEGER" property="responseTime"/>
+        <result column="keywords" jdbcType="VARCHAR" property="keywords"/>
+        <result column="recommended_rooms" jdbcType="LONGVARCHAR" property="recommendedRooms"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+    </resultMap>
+
+    <!-- 基础SQL片段 -->
+    <sql id="Base_Column_List">
+        id, user_id, message_type, message, ai_model, tokens_used, response_time,
+        keywords, recommended_rooms, create_time
+    </sql>
+
+    <!-- 分页查询用户的对话历史 -->
+    <select id="selectByUserIdPage" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM ai_conversation
+        WHERE user_id = #{userId}
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 分页查询用户在指定时间范围内的对话历史 -->
+    <select id="selectByUserIdAndDateRangePage" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM ai_conversation
+        WHERE user_id = #{userId}
+        <if test="startDate != null">
+            AND create_time >= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND create_time &lt;= #{endDate}
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 查询用户最近的对话记录 -->
+    <select id="selectRecentByUserId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM ai_conversation
+        WHERE user_id = #{userId}
+        ORDER BY create_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 删除用户的所有对话记录 -->
+    <delete id="deleteByUserId">
+        DELETE FROM ai_conversation
+        WHERE user_id = #{userId}
+    </delete>
+
+    <!-- 删除指定日期之前的对话记录 -->
+    <delete id="deleteBeforeDate">
+        DELETE FROM ai_conversation
+        WHERE create_time &lt; #{beforeDate}
+    </delete>
+
+    <!-- 统计用户的对话数量 -->
+    <select id="countByUserId" resultType="long">
+        SELECT COUNT(*)
+        FROM ai_conversation
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 统计用户在指定时间范围内的对话数量 -->
+    <select id="countByUserIdAndDateRange" resultType="long">
+        SELECT COUNT(*)
+        FROM ai_conversation
+        WHERE user_id = #{userId}
+        <if test="startDate != null">
+            AND create_time >= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND create_time &lt;= #{endDate}
+        </if>
+    </select>
+
+    <!-- 统计用户消息数量 -->
+    <select id="countByUserIdAndMessageType" resultType="long">
+        SELECT COUNT(*)
+        FROM ai_conversation
+        WHERE user_id = #{userId}
+        AND message_type = #{messageType}
+    </select>
+
+    <!-- 统计用户消耗的总token数 -->
+    <select id="sumTokensUsedByUserId" resultType="long">
+        SELECT COALESCE(SUM(tokens_used), 0)
+        FROM ai_conversation
+        WHERE user_id = #{userId}
+        AND message_type = 'AI'
+    </select>
+
+    <!-- 统计用户的平均响应时间 -->
+    <select id="avgResponseTimeByUserId" resultType="java.lang.Double">
+        SELECT AVG(response_time)
+        FROM ai_conversation
+        WHERE user_id = #{userId}
+        AND message_type = 'AI'
+        AND response_time > 0
+    </select>
+
+</mapper>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.app.mapper.RoomReviewMapper">
+
+    <select id="selectLatestByRoomId" resultType="com.atguigu.lease.model.entity.RoomReview">
+        SELECT *
+        FROM room_review
+        WHERE room_id = #{roomId}
+          AND is_deleted = 0
+        ORDER BY create_time DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectByLandlordId" resultType="com.atguigu.lease.model.entity.RoomReview">
+        SELECT *
+        FROM room_review
+        WHERE landlord_id = #{landlordId}
+          AND is_deleted = 0
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 分页查询房东房源审核状态（关联公寓信息和最新审核记录） -->
+    <select id="selectLandlordRoomReviewStatus" resultType="com.atguigu.lease.web.app.vo.landlord.RoomReviewStatusVo">
+        SELECT 
+            ri.id as roomId,
+            ri.room_number as roomNumber,
+            ri.rent,
+            ri.apartment_id as apartmentId,
+            ai.name as apartmentName,
+            CONCAT(ai.province_name, ai.city_name, ai.district_name, ai.address_detail) as apartmentAddress,
+            ri.review_status as reviewStatus,
+            CASE 
+                WHEN ri.review_status = 1 THEN '待审核'
+                WHEN ri.review_status = 2 THEN '审核通过'
+                WHEN ri.review_status = 3 THEN '审核拒绝'
+                ELSE '未知状态'
+            END as reviewStatusDesc,
+            ri.compliance_score as complianceScore,
+            ri.last_reviewed_at as lastReviewedAt,
+            ri.is_release as isRelease,
+            ri.create_time as createTime,
+            ri.update_time as updateTime,
+            rr.id as reviewId,
+            CONCAT('审核员', rr.reviewer_id) as reviewerName,
+            rr.review_comments as reviewComments,
+            rr.overall_rating as overallRating,
+            rr.reviewed_at as reviewedAt,
+            rr.photo_quality_score as photoQualityScore,
+            rr.description_accuracy_score as descriptionAccuracyScore,
+            rr.facility_completeness_score as facilityCompletenessScore,
+            rr.location_accuracy_score as locationAccuracyScore
+        FROM room_info ri
+        LEFT JOIN apartment_info ai ON ri.apartment_id = ai.id
+        LEFT JOIN (
+            SELECT rr1.*
+            FROM room_review rr1
+            INNER JOIN (
+                SELECT room_id, MAX(create_time) as max_time
+                FROM room_review
+                WHERE is_deleted = 0
+                GROUP BY room_id
+            ) rr2 ON rr1.room_id = rr2.room_id AND rr1.create_time = rr2.max_time
+            WHERE rr1.is_deleted = 0
+        ) rr ON ri.id = rr.room_id
+        WHERE ri.publisher_type = 2
+          AND ri.publisher_id = #{landlordId}
+          AND ri.is_deleted = 0
+          AND ai.is_deleted = 0
+        <if test="reviewStatus != null">
+          AND ri.review_status = #{reviewStatus}
+        </if>
+        ORDER BY ri.create_time DESC
+    </select>
+
+</mapper>

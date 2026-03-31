@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.app.mapper.FeeKeyMapper">
+
+    <resultMap id="FeeKeyVoMap" type="com.atguigu.lease.web.app.vo.fee.FeeKeyVo" autoMapping="true">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="creator_type" property="creatorType"/>
+        <result column="creator_id" property="creatorId"/>
+        <collection property="feeValueList" ofType="com.atguigu.lease.model.entity.FeeValue" autoMapping="true">
+            <id column="fee_value_id" property="id"/>
+            <result column="fee_value_name" property="name"/>
+            <result column="fee_value_unit" property="unit"/>
+            <result column="fee_key_id" property="feeKeyId"/>
+            <result column="fee_value_creator_type" property="creatorType"/>
+            <result column="fee_value_creator_id" property="creatorId"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectFeeList" resultMap="FeeKeyVoMap">
+        SELECT 
+            fk.id,
+            fk.name,
+            fk.creator_type,
+            fk.creator_id,
+            fv.id as fee_value_id,
+            fv.name as fee_value_name,
+            fv.unit as fee_value_unit,
+            fv.fee_key_id,
+            fv.creator_type as fee_value_creator_type,
+            fv.creator_id as fee_value_creator_id
+        FROM fee_key fk
+        LEFT JOIN fee_value fv ON fk.id = fv.fee_key_id AND fv.is_deleted = 0
+        WHERE fk.is_deleted = 0
+        <if test="landlordId != null">
+            AND (fk.creator_type = 1 OR (fk.creator_type = 2 AND fk.creator_id = #{landlordId}))
+        </if>
+        ORDER BY fk.creator_type ASC, fk.id ASC, fv.id ASC
+    </select>
+
+</mapper>

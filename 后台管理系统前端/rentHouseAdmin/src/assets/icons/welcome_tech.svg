@@ -1,0 +1,129 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 渐变定义 -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0F172A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1E293B;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="houseGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1D4ED8;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="roofGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#60A5FA;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- 网格图案 -->
+    <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#334155" stroke-width="0.5" opacity="0.3"/>
+    </pattern>
+    
+    <!-- 发光效果 -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="400" height="300" fill="url(#bgGradient)"/>
+  <rect width="400" height="300" fill="url(#grid)"/>
+  
+  <!-- 装饰性几何图形 -->
+  <circle cx="50" cy="50" r="20" fill="#1E40AF" opacity="0.1"/>
+  <circle cx="350" cy="50" r="15" fill="#3B82F6" opacity="0.15"/>
+  <rect x="320" y="220" width="25" height="25" rx="3" fill="#1E40AF" opacity="0.1" transform="rotate(45 332.5 232.5)"/>
+  <rect x="30" y="200" width="20" height="20" rx="2" fill="#3B82F6" opacity="0.1" transform="rotate(30 40 210)"/>
+  
+  <!-- 主要房屋建筑 -->
+  <g transform="translate(200, 150)">
+    <!-- 房屋主体 -->
+    <rect x="-40" y="-25" width="80" height="60" rx="6" fill="url(#houseGradient)" filter="url(#glow)"/>
+    
+    <!-- 屋顶 -->
+    <polygon points="-45,-25 0,-50 45,-25" fill="url(#roofGradient)" filter="url(#glow)"/>
+    
+    <!-- 窗户 -->
+    <rect x="-30" y="-15" width="15" height="15" rx="2" fill="#60A5FA" opacity="0.8"/>
+    <rect x="15" y="-15" width="15" height="15" rx="2" fill="#60A5FA" opacity="0.8"/>
+    
+    <!-- 门 -->
+    <rect x="-8" y="5" width="16" height="30" rx="2" fill="#1E40AF"/>
+    <circle cx="5" cy="20" r="1.5" fill="#60A5FA"/>
+    
+    <!-- 智能标识 -->
+    <circle cx="25" cy="-35" r="8" fill="#10B981" opacity="0.9"/>
+    <text x="25" y="-31" text-anchor="middle" fill="white" font-family="Arial" font-size="10" font-weight="bold">AI</text>
+  </g>
+  
+  <!-- 数据连接线 -->
+  <g opacity="0.7">
+    <!-- 左侧数据流 -->
+    <path d="M30 120 Q80 100 130 120 Q150 130 170 140" stroke="#10B981" stroke-width="2" fill="none" stroke-dasharray="5,5">
+      <animate attributeName="stroke-dashoffset" values="0;-10" dur="2s" repeatCount="indefinite"/>
+    </path>
+    
+    <!-- 右侧数据流 -->
+    <path d="M230 140 Q250 130 270 120 Q320 100 370 120" stroke="#06B6D4" stroke-width="2" fill="none" stroke-dasharray="5,5">
+      <animate attributeName="stroke-dashoffset" values="0;-10" dur="2s" repeatCount="indefinite"/>
+    </path>
+    
+    <!-- 上方数据流 -->
+    <path d="M120 80 Q150 70 180 80 Q210 70 240 80" stroke="#8B5CF6" stroke-width="2" fill="none" stroke-dasharray="3,3">
+      <animate attributeName="stroke-dashoffset" values="0;-6" dur="1.5s" repeatCount="indefinite"/>
+    </path>
+  </g>
+  
+  <!-- 数据节点 -->
+  <g>
+    <circle cx="60" cy="120" r="4" fill="#10B981" opacity="0.8">
+      <animate attributeName="r" values="4;6;4" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="130" cy="120" r="4" fill="#10B981" opacity="0.8">
+      <animate attributeName="r" values="4;6;4" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="270" cy="120" r="4" fill="#06B6D4" opacity="0.8">
+      <animate attributeName="r" values="4;6;4" dur="2s" begin="1s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="340" cy="120" r="4" fill="#06B6D4" opacity="0.8">
+      <animate attributeName="r" values="4;6;4" dur="2s" begin="1.5s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  
+  <!-- 浮动图标 -->
+  <g opacity="0.6">
+    <!-- 云计算图标 -->
+    <g transform="translate(80, 60)">
+      <ellipse cx="0" cy="0" rx="12" ry="8" fill="#60A5FA"/>
+      <ellipse cx="-8" cy="2" rx="8" ry="6" fill="#60A5FA"/>
+      <ellipse cx="8" cy="2" rx="8" ry="6" fill="#60A5FA"/>
+    </g>
+    
+    <!-- 数据库图标 -->
+    <g transform="translate(320, 180)">
+      <ellipse cx="0" cy="-5" rx="10" ry="3" fill="#10B981"/>
+      <rect x="-10" y="-5" width="20" height="10" fill="#10B981"/>
+      <ellipse cx="0" cy="5" rx="10" ry="3" fill="#059669"/>
+    </g>
+    
+    <!-- 移动设备图标 -->
+    <g transform="translate(100, 220)">
+      <rect x="-6" y="-10" width="12" height="20" rx="2" fill="#8B5CF6"/>
+      <rect x="-4" y="-7" width="8" height="12" rx="1" fill="#A78BFA"/>
+      <circle cx="0" cy="7" r="1.5" fill="#C4B5FD"/>
+    </g>
+  </g>
+  
+  <!-- 标题文字 -->
+  <text x="200" y="240" text-anchor="middle" fill="#F1F5F9" font-family="Arial, sans-serif" font-size="22" font-weight="bold">智慧租房管理系统</text>
+  <text x="200" y="265" text-anchor="middle" fill="#94A3B8" font-family="Arial, sans-serif" font-size="13">AI智能推荐 · 数据驱动决策 · 高效管理</text>
+  
+  <!-- 版本标识 -->
+  <text x="380" y="290" text-anchor="end" fill="#64748B" font-family="Arial, sans-serif" font-size="10">v2.0</text>
+</svg>

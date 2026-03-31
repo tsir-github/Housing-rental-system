@@ -1,0 +1,1 @@
+export { default as RoomAvailabilityChecker } from './RoomAvailabilityChecker.vue';

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.admin.mapper.RoomInfoMapper">
+
+    <resultMap id="RoomItemVoMap" type="com.atguigu.lease.web.admin.vo.room.RoomItemVo" autoMapping="true">
+        <id property="id" column="id"/>
+        <result property="publisherType" column="publisher_type"/>
+        <result property="publisherId" column="publisher_id"/>
+        <result property="reviewStatus" column="review_status"/>
+        <result property="complianceScore" column="compliance_score"/>
+        <result property="lastReviewedAt" column="last_reviewed_at"/>
+        <association property="apartmentInfo" javaType="com.atguigu.lease.model.entity.ApartmentInfo" autoMapping="true">
+            <id property="id" column="apart_id"/>
+            <result property="isRelease" column="apart_is_release"/>
+        </association>
+        <association property="reviewInfo" javaType="com.atguigu.lease.web.admin.vo.room.RoomItemVo$RoomReviewInfo">
+            <id property="reviewId" column="review_id"/>
+            <result property="reviewerId" column="reviewer_id"/>
+            <result property="reviewerName" column="reviewer_name"/>
+            <result property="reviewStatus" column="review_review_status"/>
+            <result property="complianceScore" column="review_compliance_score"/>
+            <result property="photoQualityScore" column="photo_quality_score"/>
+            <result property="descriptionAccuracyScore" column="description_accuracy_score"/>
+            <result property="facilityCompletenessScore" column="facility_completeness_score"/>
+            <result property="locationAccuracyScore" column="location_accuracy_score"/>
+            <result property="overallRating" column="overall_rating"/>
+            <result property="reviewComments" column="review_comments"/>
+            <result property="rejectionReasons" column="rejection_reasons"/>
+            <result property="reviewedAt" column="reviewed_at"/>
+        </association>
+    </resultMap>
+    
+    <select id="pageRoomItemByQuery" resultMap="RoomItemVoMap">
+        select ri.id,
+        ri.room_number,
+        ri.rent,
+        ri.apartment_id,
+        ri.is_release,
+        ri.publisher_type,
+        ri.publisher_id,
+        ri.review_status,
+        ri.compliance_score,
+        ri.last_reviewed_at,
+        la.room_id is not null is_check_in,
+        la.lease_end_date,
+        ai.id                  apart_id,
+        ai.name,
+        ai.introduction,
+        ai.district_id,
+        ai.district_name,
+        ai.city_id,
+        ai.city_name,
+        ai.province_id,
+        ai.province_name,
+        ai.address_detail,
+        ai.latitude,
+        ai.longitude,
+        ai.phone,
+        ai.is_release          apart_is_release,
+        rr.id                  review_id,
+        rr.reviewer_id,
+        su.name                reviewer_name,
+        rr.status              review_review_status,
+        rr.compliance_score    review_compliance_score,
+        rr.photo_quality_score,
+        rr.description_accuracy_score,
+        rr.facility_completeness_score,
+        rr.location_accuracy_score,
+        rr.overall_rating,
+        rr.review_comments,
+        rr.rejection_reasons,
+        rr.reviewed_at
+        from room_info ri
+        left join lease_agreement la
+        on ri.id = la.room_id
+        and la.is_deleted = 0
+        and la.status in (2,5)
+        left join apartment_info ai
+        on ri.apartment_id = ai.id
+        and ai.is_deleted = 0
+        left join (
+            select rr1.*
+            from room_review rr1
+            inner join (
+                select room_id, max(create_time) as max_time
+                from room_review
+                where is_deleted = 0
+                group by room_id
+            ) rr2 on rr1.room_id = rr2.room_id and rr1.create_time = rr2.max_time
+            where rr1.is_deleted = 0
+        ) rr on ri.id = rr.room_id and ri.publisher_type = 2
+        left join system_user su
+        on rr.reviewer_id = su.id
+        and su.is_deleted = 0
+        <where>
+            ri.is_deleted = 0
+            <if test="queryVo.provinceId != null">
+                and ai.province_id = #{queryVo.provinceId}
+            </if>
+            <if test="queryVo.cityId != null">
+                and ai.city_id = #{queryVo.cityId}
+            </if>
+            <if test="queryVo.districtId != null">
+                and ai.district_id = #{queryVo.districtId}
+            </if>
+            <if test="queryVo.apartmentId != null">
+                and ri.apartment_id = #{queryVo.apartmentId}
+            </if>
+            <if test="queryVo.publisherType != null">
+                and ri.publisher_type = #{queryVo.publisherType}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectByPublisherType" resultType="com.atguigu.lease.model.entity.RoomInfo">
+        SELECT *
+        FROM room_info
+        WHERE publisher_type = #{publisherType}
+          AND is_deleted = 0
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectByPublisherId" resultType="com.atguigu.lease.model.entity.RoomInfo">
+        SELECT *
+        FROM room_info
+        WHERE publisher_id = #{publisherId}
+          AND is_deleted = 0
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectByReviewStatus" resultType="com.atguigu.lease.model.entity.RoomInfo">
+        SELECT *
+        FROM room_info
+        WHERE review_status = #{reviewStatus}
+          AND is_deleted = 0
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectPendingReview" resultType="com.atguigu.lease.model.entity.RoomInfo">
+        SELECT *
+        FROM room_info
+        WHERE review_status = 1
+          AND is_deleted = 0
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectByLandlordId" resultType="com.atguigu.lease.model.entity.RoomInfo">
+        SELECT *
+        FROM room_info
+        WHERE publisher_type = 2
+          AND publisher_id = #{landlordId}
+          AND is_deleted = 0
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>

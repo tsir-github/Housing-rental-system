@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.admin.mapper.LandlordPermissionMapper">
+
+    <!-- 房东权限VO结果映射 -->
+    <resultMap id="LandlordPermissionVoMap" type="com.atguigu.lease.web.admin.vo.landlord.LandlordPermissionVo">
+        <id column="id" property="id"/>
+        <result column="landlord_id" property="landlordId"/>
+        <result column="landlord_name" property="landlordName"/>
+        <result column="landlord_phone" property="landlordPhone"/>
+        <result column="permission_key" property="permissionKey"/>
+        <result column="permission_name" property="permissionName"/>
+        <result column="permission_description" property="permissionDescription"/>
+        <result column="status" property="status"/>
+        <result column="granted_by" property="grantedBy"/>
+        <result column="granted_by_name" property="grantedByName"/>
+        <result column="granted_time" property="grantedTime"/>
+        <result column="expire_time" property="expireTime"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 分页查询房东权限列表 -->
+    <select id="pageLandlordPermissions" resultMap="LandlordPermissionVoMap">
+        SELECT 
+            lp.id,
+            lp.landlord_id,
+            ui.name as landlord_name,
+            ui.phone as landlord_phone,
+            lp.permission_key,
+            CASE lp.permission_key
+                WHEN 'APARTMENT_MANAGE' THEN '公寓管理'
+                WHEN 'ROOM_MANAGE' THEN '房间管理'
+                WHEN 'APPLICATION_REVIEW' THEN '申请审核'
+                WHEN 'LEASE_MANAGE' THEN '租约管理'
+                WHEN 'FINANCIAL_VIEW' THEN '财务查看'
+                WHEN 'TENANT_MANAGE' THEN '租客管理'
+                WHEN 'REPORT_VIEW' THEN '报表查看'
+                WHEN 'SETTING_MANAGE' THEN '设置管理'
+                ELSE lp.permission_key
+            END as permission_name,
+            CASE lp.permission_key
+                WHEN 'APARTMENT_MANAGE' THEN '管理公寓信息、房间信息'
+                WHEN 'ROOM_MANAGE' THEN '管理房间详细信息、设施配置'
+                WHEN 'APPLICATION_REVIEW' THEN '审核租客申请'
+                WHEN 'LEASE_MANAGE' THEN '管理租赁合同'
+                WHEN 'FINANCIAL_VIEW' THEN '查看财务报表'
+                WHEN 'TENANT_MANAGE' THEN '管理租客信息'
+                WHEN 'REPORT_VIEW' THEN '查看各类报表'
+                WHEN 'SETTING_MANAGE' THEN '管理系统设置'
+                ELSE '权限描述'
+            END as permission_description,
+            lp.status,
+            lp.granted_by,
+            su.name as granted_by_name,
+            lp.granted_time,
+            lp.expire_time,
+            lp.create_time,
+            lp.update_time
+        FROM landlord_permission lp
+        LEFT JOIN user_info ui ON lp.landlord_id = ui.id
+        LEFT JOIN system_user su ON lp.granted_by = su.id
+        <where>
+            lp.is_deleted = 0
+            <if test="query.landlordId != null">
+                AND lp.landlord_id = #{query.landlordId}
+            </if>
+            <if test="query.landlordName != null and query.landlordName != ''">
+                AND ui.name LIKE CONCAT('%', #{query.landlordName}, '%')
+            </if>
+            <if test="query.permissionKey != null and query.permissionKey != ''">
+                AND lp.permission_key = #{query.permissionKey}
+            </if>
+            <if test="query.status != null">
+                AND lp.status = #{query.status}
+            </if>
+            <if test="query.createTimeStart != null and query.createTimeStart != ''">
+                AND lp.create_time >= #{query.createTimeStart}
+            </if>
+            <if test="query.createTimeEnd != null and query.createTimeEnd != ''">
+                AND lp.create_time &lt;= #{query.createTimeEnd}
+            </if>
+        </where>
+        ORDER BY lp.create_time DESC
+    </select>
+
+    <!-- 获取房东权限列表 -->
+    <select id="getLandlordPermissions" resultMap="LandlordPermissionVoMap">
+        SELECT 
+            lp.id,
+            lp.landlord_id,
+            ui.name as landlord_name,
+            ui.phone as landlord_phone,
+            lp.permission_key,
+            CASE lp.permission_key
+                WHEN 'APARTMENT_MANAGE' THEN '公寓管理'
+                WHEN 'ROOM_MANAGE' THEN '房间管理'
+                WHEN 'APPLICATION_REVIEW' THEN '申请审核'
+                WHEN 'LEASE_MANAGE' THEN '租约管理'
+                WHEN 'FINANCIAL_VIEW' THEN '财务查看'
+                WHEN 'TENANT_MANAGE' THEN '租客管理'
+                WHEN 'REPORT_VIEW' THEN '报表查看'
+                WHEN 'SETTING_MANAGE' THEN '设置管理'
+                ELSE lp.permission_key
+            END as permission_name,
+            CASE lp.permission_key
+                WHEN 'APARTMENT_MANAGE' THEN '管理公寓信息、房间信息'
+                WHEN 'ROOM_MANAGE' THEN '管理房间详细信息、设施配置'
+                WHEN 'APPLICATION_REVIEW' THEN '审核租客申请'
+                WHEN 'LEASE_MANAGE' THEN '管理租赁合同'
+                WHEN 'FINANCIAL_VIEW' THEN '查看财务报表'
+                WHEN 'TENANT_MANAGE' THEN '管理租客信息'
+                WHEN 'REPORT_VIEW' THEN '查看各类报表'
+                WHEN 'SETTING_MANAGE' THEN '管理系统设置'
+                ELSE '权限描述'
+            END as permission_description,
+            lp.status,
+            lp.granted_by,
+            su.name as granted_by_name,
+            lp.granted_time,
+            lp.expire_time,
+            lp.create_time,
+            lp.update_time
+        FROM landlord_permission lp
+        LEFT JOIN user_info ui ON lp.landlord_id = ui.id
+        LEFT JOIN system_user su ON lp.granted_by = su.id
+        WHERE lp.landlord_id = #{landlordId}
+          AND lp.is_deleted = 0
+          AND lp.status = 1
+        ORDER BY lp.create_time DESC
+    </select>
+
+    <!-- 统计有权限的房东数量 -->
+    <select id="countLandlordsWithPermissions" resultType="long">
+        SELECT COUNT(DISTINCT landlord_id)
+        FROM landlord_permission
+        WHERE is_deleted = 0
+          AND status = 1
+    </select>
+
+</mapper>

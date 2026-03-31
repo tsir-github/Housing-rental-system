@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.admin.mapper.RoomReviewMapper">
+
+    <select id="selectLatestByRoomId" resultType="com.atguigu.lease.model.entity.RoomReview">
+        SELECT *
+        FROM room_review
+        WHERE room_id = #{roomId}
+          AND is_deleted = 0
+        ORDER BY create_time DESC
+        LIMIT 1
+    </select>
+
+</mapper>

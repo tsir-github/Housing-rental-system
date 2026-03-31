@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.app.mapper.FacilityInfoMapper">
+
+    <select id="selectListByRoomId" resultType="com.atguigu.lease.model.entity.FacilityInfo">
+        select id,
+               type,
+               name,
+               icon,
+               creator_type,
+               creator_id
+        from facility_info
+        where is_deleted = 0
+          and id in (select facility_id
+                     from room_facility
+                     where is_deleted = 0
+                       and room_id = #{id})
+    </select>
+
+    <select id="selectListByApartmentId" resultType="com.atguigu.lease.model.entity.FacilityInfo">
+        select id,
+               type,
+               name,
+               icon
+        from facility_info
+        where is_deleted = 0
+          and id in (select facility_id
+                     from apartment_facility
+                     where is_deleted = 0
+                       and apartment_id = #{id})
+    </select>
+
+    <!-- 查询房东可用的配套设施（官方+房东发布） -->
+    <select id="selectAvailableForLandlord" resultType="com.atguigu.lease.model.entity.FacilityInfo">
+        SELECT 
+            id,
+            type,
+            name,
+            icon,
+            creator_type as creatorType,
+            creator_id as creatorId,
+            create_time as createTime,
+            update_time as updateTime
+        FROM facility_info 
+        WHERE is_deleted = 0 
+        AND (creator_type = 1 OR (creator_type = 2 AND creator_id = #{landlordId}))
+        ORDER BY creator_type ASC, name ASC
+    </select>
+
+    <!-- 查询公寓关联的配套设施 -->
+    <select id="selectByApartmentId" resultType="com.atguigu.lease.model.entity.FacilityInfo">
+        SELECT 
+            fi.id,
+            fi.type,
+            fi.name,
+            fi.icon,
+            fi.creator_type as creatorType,
+            fi.creator_id as creatorId,
+            fi.create_time as createTime,
+            fi.update_time as updateTime
+        FROM apartment_facility af
+        INNER JOIN facility_info fi ON af.facility_id = fi.id
+        WHERE af.apartment_id = #{apartmentId} 
+        AND af.is_deleted = 0 
+        AND fi.is_deleted = 0
+        ORDER BY fi.name ASC
+    </select>
+</mapper>

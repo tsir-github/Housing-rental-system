@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.app.mapper.RoomInfoMapper">
+
+    <resultMap id="RoomItemVoMap" type="com.atguigu.lease.web.app.vo.room.RoomItemVo" autoMapping="true">
+        <id column="id" property="id"/>
+        <!--映射公寓信息-->
+        <association property="apartmentInfo" javaType="com.atguigu.lease.model.entity.ApartmentInfo" autoMapping="true">
+            <id column="id" property="id"/>
+        </association>
+        <!--映射图片列表-->
+        <collection property="graphVoList" ofType="com.atguigu.lease.web.app.vo.graph.GraphVo"
+                    select="selectGraphVoListByRoomId" column="id"/>
+        <!--映射标签列表-->
+        <collection property="labelInfoList" ofType="com.atguigu.lease.model.entity.LabelInfo"
+                    select="selectLabelInfoListByRoomId" column="id"/>
+    </resultMap>
+    <!-- 根据条件查询房间列表 -->
+    <select id="pageItem" resultMap="RoomItemVoMap">
+        select
+        ri.id,
+        ri.room_number,
+        ri.rent,
+        ri.apartment_id,
+        ri.publisher_type,
+        ri.publisher_id,
+        ri.is_release,
+        ri.review_status,
+        ri.compliance_score,
+        ri.last_reviewed_at,
+        ri.create_time,
+        ri.update_time,
+        (
+            SELECT rr.overall_rating 
+            FROM room_review rr 
+            WHERE rr.room_id = ri.id 
+            AND rr.is_deleted = 0 
+            AND rr.status = 2 
+            ORDER BY rr.create_time DESC 
+            LIMIT 1
+        ) as overall_rating,
+        ai.id apartment_id,
+        ai.name apartment_name,
+        ai.introduction,
+        ai.district_id,
+        ai.district_name,
+        ai.city_id,
+        ai.city_name,
+        ai.province_id,
+        ai.province_name,
+        ai.address_detail,
+        ai.latitude,
+        ai.longitude,
+        ai.phone,
+        ai.is_release apartment_is_release
+        from room_info ri
+        left join apartment_info ai on ri.apartment_id = ai.id and ai.is_deleted = 0
+        <where>
+            ri.is_deleted = 0
+            <!-- 如果指定了发布者类型和ID（房东查看自己的房源），则显示所有状态的房源 -->
+            <choose>
+                <when test="queryVo.publisherType != null and queryVo.publisherId != null">
+                    <!-- 房东查看自己的房源，显示所有状态 -->
+                    and ri.publisher_type = #{queryVo.publisherType}
+                    and ri.publisher_id = #{queryVo.publisherId}
+                </when>
+                <otherwise>
+                    <!-- 租客查看房源，只显示已发布、审核通过且未被租用的房源 -->
+                    and ri.is_release = 1
+                    and ri.review_status = 2
+                    and ri.id not in(
+                    select room_id
+                    from lease_agreement
+                    where is_deleted = 0
+                    and status in(2,5))
+                </otherwise>
+            </choose>
+            <if test="queryVo.apartmentId != null">
+                and ri.apartment_id = #{queryVo.apartmentId}
+            </if>
+            <if test="queryVo.provinceId != null">
+                and ai.province_id = #{queryVo.provinceId}
+            </if>
+            <if test="queryVo.cityId != null">
+                and ai.city_id = #{queryVo.cityId}
+            </if>
+            <if test="queryVo.districtId != null">
+                and ai.district_id = #{queryVo.districtId}
+            </if>
+            <if test="queryVo.minRent != null and queryVo.maxRent != null">
+                and (ri.rent &gt;= #{queryVo.minRent} and ri.rent &lt;= #{queryVo.maxRent})
+            </if>
+            <if test="queryVo.paymentTypeId != null">
+                and ri.id in (
+                select
+                room_id
+                from room_payment_type
+                where is_deleted = 0
+                and payment_type_id = #{queryVo.paymentTypeId}
+                )
+            </if>
+            <if test="queryVo.isRelease != null">
+                and ri.is_release = #{queryVo.isRelease}
+            </if>
+            <if test="queryVo.reviewStatus != null">
+                and ri.review_status = #{queryVo.reviewStatus}
+            </if>
+            <!-- 新增：根据发布者类型筛选 -->
+            <if test="queryVo.publisherType != null and queryVo.publisherId == null">
+                and ri.publisher_type = #{queryVo.publisherType}
+            </if>
+        </where>
+        <choose>
+            <when test="queryVo.orderType == 'desc' or queryVo.orderType == 'asc'">
+                order by ri.rent ${queryVo.orderType}
+            </when>
+            <otherwise>
+                order by ri.create_time desc
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 根据房间ID查询图片列表 -->
+    <select id="selectGraphVoListByRoomId" resultType="com.atguigu.lease.web.app.vo.graph.GraphVo">
+        select id,
+               name,
+               item_type,
+               item_id,
+               url
+        from graph_info
+        where is_deleted = 0
+          and item_type = 2
+          and item_id = #{id}
+    </select>
+
+    <!-- 根据公寓ID查询标签列表 -->
+    <select id="selectLabelInfoListByRoomId" resultType="com.atguigu.lease.model.entity.LabelInfo">
+        select id,
+               type,
+               name
+        from label_info
+        where is_deleted = 0
+          and id in (select label_id
+                     from room_label
+                     where is_deleted = 0
+                       and room_id = #{id})
+    </select>
+    <select id="selectMinRentByApartmentId" resultType="java.math.BigDecimal">
+        select min(rent)
+        from room_info
+        where is_deleted = 0
+          and is_release = 1
+          and apartment_id = #{id}
+    </select>
+
+
+    <select id="pageItemByApartmentId" resultMap="RoomItemVoMap">
+        select ri.id,
+               ri.room_number,
+               ri.rent,
+               ai.id apartment_id,
+               ai.name,
+               ai.introduction,
+               ai.district_id,
+               ai.district_name,
+               ai.city_id,
+               ai.city_name,
+               ai.province_id,
+               ai.province_name,
+               ai.address_detail,
+               ai.latitude,
+               ai.longitude,
+               ai.phone,
+               ai.is_release
+        from room_info ri
+                 left join apartment_info ai on ri.apartment_id = ai.id and ai.is_deleted = 0
+        where ri.apartment_id = #{id}
+
+          and ri.is_deleted = 0
+          and ri.is_release = 1
+          and ri.id not in (select room_id
+                            from lease_agreement
+                            where is_deleted = 0
+                              and status in (2, 5))
+    </select>
+
+    <!-- 房东房源管理相关SQL -->
+    <!-- 删除房间属性关联 -->
+    <delete id="deleteRoomAttrValueByRoomId">
+        DELETE FROM room_attr_value WHERE room_id = #{roomId}
+    </delete>
+
+    <!-- 删除房间配套关联 -->
+    <delete id="deleteRoomFacilityByRoomId">
+        DELETE FROM room_facility WHERE room_id = #{roomId}
+    </delete>
+
+    <!-- 删除房间标签关联 -->
+    <delete id="deleteRoomLabelByRoomId">
+        DELETE FROM room_label WHERE room_id = #{roomId}
+    </delete>
+
+    <!-- 删除房间支付方式关联 -->
+    <delete id="deleteRoomPaymentTypeByRoomId">
+        DELETE FROM room_payment_type WHERE room_id = #{roomId}
+    </delete>
+
+    <!-- 删除房间租期关联 -->
+    <delete id="deleteRoomLeaseTermByRoomId">
+        DELETE FROM room_lease_term WHERE room_id = #{roomId}
+    </delete>
+
+    <!-- 批量插入房间图片 -->
+    <insert id="insertRoomGraphBatch">
+        INSERT INTO graph_info (name, item_type, item_id, url, create_time, update_time)
+        VALUES
+        <foreach collection="graphList" item="graph" separator=",">
+            (#{graph.name}, 2, #{roomId}, #{graph.url}, NOW(), NOW())
+        </foreach>
+    </insert>
+
+    <!-- 批量插入房间属性关联 -->
+    <insert id="insertRoomAttrValueBatch">
+        INSERT INTO room_attr_value (room_id, attr_value_id, is_deleted, create_time, update_time)
+        VALUES
+        <foreach collection="attrValueIds" item="attrValueId" separator=",">
+            (#{roomId}, #{attrValueId}, 0, NOW(), NOW())
+        </foreach>
+    </insert>
+
+    <!-- 批量插入房间配套关联 -->
+    <insert id="insertRoomFacilityBatch">
+        INSERT INTO room_facility (room_id, facility_id, is_deleted, create_time, update_time)
+        VALUES
+        <foreach collection="facilityIds" item="facilityId" separator=",">
+            (#{roomId}, #{facilityId}, 0, NOW(), NOW())
+        </foreach>
+    </insert>
+
+    <!-- 批量插入房间标签关联 -->
+    <insert id="insertRoomLabelBatch">
+        INSERT INTO room_label (room_id, label_id, is_deleted, create_time, update_time)
+        VALUES
+        <foreach collection="labelIds" item="labelId" separator=",">
+            (#{roomId}, #{labelId}, 0, NOW(), NOW())
+        </foreach>
+    </insert>
+
+    <!-- 批量插入房间支付方式关联 -->
+    <insert id="insertRoomPaymentTypeBatch">
+        INSERT INTO room_payment_type (room_id, payment_type_id, is_deleted, create_time, update_time)
+        VALUES
+        <foreach collection="paymentTypeIds" item="paymentTypeId" separator=",">
+            (#{roomId}, #{paymentTypeId}, 0, NOW(), NOW())
+        </foreach>
+    </insert>
+
+    <!-- 批量插入房间租期关联 -->
+    <insert id="insertRoomLeaseTermBatch">
+        INSERT INTO room_lease_term (room_id, lease_term_id, is_deleted, create_time, update_time)
+        VALUES
+        <foreach collection="leaseTermIds" item="leaseTermId" separator=",">
+            (#{roomId}, #{leaseTermId}, 0, NOW(), NOW())
+        </foreach>
+    </insert>
+    <!-- 查询房源详情 -->
+    <select id="selectRoomDetailById" resultType="com.atguigu.lease.web.app.vo.room.RoomDetailVo">
+        SELECT 
+            ri.id,
+            ri.room_number,
+            ri.rent,
+            ri.apartment_id,
+            ai.name as apartment_name,
+            ai.introduction as apartment_introduction,
+            ai.address_detail as apartment_address,
+            ai.phone as apartment_phone,
+            ri.publisher_type,
+            ri.publisher_id,
+            ri.is_release,
+            ri.review_status,
+            ri.compliance_score,
+            ri.last_reviewed_at,
+            ri.create_time,
+            ri.update_time
+        FROM room_info ri
+        LEFT JOIN apartment_info ai ON ri.apartment_id = ai.id
+        WHERE ri.id = #{roomId} AND ri.is_deleted = 0
+    </select>
+
+    <!-- 查询房源属性列表 -->
+    <select id="selectAttrValuesByRoomId" resultType="com.atguigu.lease.web.app.vo.attr.AttrValueVo">
+        SELECT 
+            av.id,
+            av.name,
+            av.attr_key_id,
+            ak.name as attr_key_name
+        FROM room_attr_value rav
+        LEFT JOIN attr_value av ON rav.attr_value_id = av.id
+        LEFT JOIN attr_key ak ON av.attr_key_id = ak.id
+        WHERE rav.room_id = #{roomId}
+          AND rav.is_deleted = 0
+          AND av.is_deleted = 0
+          AND ak.is_deleted = 0
+        ORDER BY ak.id, av.id
+    </select>
+
+    <!-- 查询房源审核详情 -->
+    <select id="selectRoomReviewByRoomId" resultType="com.atguigu.lease.web.app.vo.landlord.RoomReviewDetailVo">
+        SELECT 
+            rr.id,
+            rr.room_id,
+            rr.apartment_id,
+            rr.landlord_id,
+            rr.reviewer_id,
+            rr.status,
+            rr.compliance_score,
+            rr.photo_quality_score,
+            rr.description_accuracy_score,
+            rr.facility_completeness_score,
+            rr.location_accuracy_score,
+            rr.overall_rating,
+            rr.review_comments,
+            rr.rejection_reasons,
+            rr.reviewed_at,
+            rr.create_time,
+            rr.update_time,
+            su.name as reviewer_name
+        FROM room_review rr
+        LEFT JOIN system_user su ON rr.reviewer_id = su.id
+        WHERE rr.room_id = #{roomId} 
+          AND rr.is_deleted = 0
+        ORDER BY rr.create_time DESC
+        LIMIT 1
+    </select>
+
+</mapper>

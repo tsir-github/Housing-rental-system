@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.app.mapper.LandlordPermissionMapper">
+
+    <select id="selectPermissionsByUserId" resultType="java.lang.String">
+        SELECT permission_code
+        FROM landlord_permission
+        WHERE user_id = #{userId}
+          AND is_deleted = 0
+    </select>
+
+    <select id="hasPermission" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM landlord_permission
+        WHERE user_id = #{userId}
+          AND permission_code = #{permissionCode}
+          AND is_deleted = 0
+    </select>
+
+</mapper>

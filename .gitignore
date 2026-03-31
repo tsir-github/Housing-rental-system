@@ -1,0 +1,146 @@
+# ==========================================
+# 租赁系统 Git 忽略文件配置
+# ==========================================
+
+# ============ Node.js 前端项目 ============
+# 依赖目录
+node_modules/
+*/node_modules/
+**/node_modules/
+
+# 编译产物
+dist/
+*/dist/
+**/dist/
+build/
+*/build/
+**/build/
+
+# 缓存目录
+.cache/
+.temp/
+.tmp/
+
+# 日志文件
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# 环境变量文件(如果包含敏感信息,取消注释)
+# .env
+# .env.local
+# .env.*.local
+
+# ============ Java 后端项目 ============
+# Maven 编译产物
+target/
+*/target/
+**/target/
+
+# Java 编译文件
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Maven 包装器
+.mvn/wrapper/maven-wrapper.jar
+
+# ============ IDE 配置文件 ============
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Eclipse
+.project
+.classpath
+.settings/
+.metadata/
+
+# ============ 操作系统文件 ============
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ============ Python 文件 ============
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.pyo
+*.pyd
+
+# ============ Kiro IDE 配置 ============
+.kiro/
+
+# ============ 项目特定排除文件 ============
+# 开发进度文档
+移动端前端开发进度/
+后台管理系统前端开发进度/
+
+# Python 测试脚本
+custom_redis_mcp.py
+redis_cache_manager.py
+redis_test.py
+
+# Java 测试类
+**/src/test/
+*Test.java
+*Tests.java
+
+# SQL 文件
+*.sql
+
+# 敏感配置文件(包含数据库密码、Redis密码、MinIO密钥等)
+**/application.yml
+**/application.yaml
+**/application-*.yml
+**/application-*.yaml
+# 保留配置模板文件
+!**/application.yml.example
+!**/application.yaml.example
+
+# 后端静态前端文件(已有独立前端项目)
+**/resources/static/frontend-templates/
+
+# ============ 其他临时文件 ============
+*.swp
+*.swo
+*.bak
+*.tmp
+*.temp
+*.orig
+*.rej
+
+# ============ 测试覆盖率报告 ============
+coverage/
+*.lcov
+.nyc_output/
+
+# ============ 打包文件 ============
+*.tgz
+*.gz

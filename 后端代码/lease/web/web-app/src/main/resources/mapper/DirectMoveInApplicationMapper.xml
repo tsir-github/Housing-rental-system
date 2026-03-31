@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.app.mapper.DirectMoveInApplicationMapper">
+
+    <!-- 查询房东的待处理申请列表 -->
+    <select id="selectPendingApplicationsByLandlord" resultType="com.atguigu.lease.web.app.vo.application.DirectMoveInApplicationDetailVO">
+        SELECT 
+            dma.id,
+            dma.user_id,
+            dma.room_id,
+            dma.apartment_id,
+            dma.landlord_id,
+            dma.name,
+            dma.phone,
+            dma.identification_number,
+            dma.email,
+            dma.emergency_contact,
+            dma.emergency_phone,
+            dma.lease_start_date,
+            dma.lease_end_date,
+            dma.lease_term_id,
+            dma.rent,
+            dma.deposit,
+            dma.payment_type_id,
+            dma.status,
+            dma.processor_id,
+            dma.processor_type,
+            dma.rejection_reason,
+            dma.processed_at,
+            dma.additional_info,
+            dma.create_time,
+            dma.update_time,
+            -- 关联信息
+            ri.room_number,
+            ai.name as apartment_name,
+            lt.name as lease_term_name,
+            pt.name as payment_type_name,
+            CASE 
+                WHEN dma.processor_type = 1 THEN su.name
+                WHEN dma.processor_type = 2 THEN ui.nickname
+                ELSE NULL
+            END as processor_name,
+            -- 房间图片URL（取第一张图片，item_type=2表示房间图片）
+            (SELECT gi.url FROM graph_info gi WHERE gi.item_type = 2 AND gi.item_id = ri.id AND gi.is_deleted = 0 LIMIT 1) as room_graph_url
+        FROM direct_move_in_application dma
+        LEFT JOIN room_info ri ON dma.room_id = ri.id AND ri.is_deleted = 0
+        LEFT JOIN apartment_info ai ON dma.apartment_id = ai.id AND ai.is_deleted = 0
+        LEFT JOIN lease_term lt ON dma.lease_term_id = lt.id AND lt.is_deleted = 0
+        LEFT JOIN payment_type pt ON dma.payment_type_id = pt.id AND pt.is_deleted = 0
+        LEFT JOIN system_user su ON dma.processor_id = su.id AND dma.processor_type = 1
+        LEFT JOIN user_info ui ON dma.processor_id = ui.id AND dma.processor_type = 2
+        WHERE dma.status = 1
+          AND dma.landlord_id = #{landlordId}
+          AND dma.is_deleted = 0
+        ORDER BY dma.create_time DESC
+    </select>
+
+    <!-- 查询房东的所有申请列表 -->
+    <select id="selectApplicationsByLandlord" resultType="com.atguigu.lease.web.app.vo.application.DirectMoveInApplicationDetailVO">
+        SELECT 
+            dma.id,
+            dma.user_id,
+            dma.room_id,
+            dma.apartment_id,
+            dma.landlord_id,
+            dma.name,
+            dma.phone,
+            dma.identification_number,
+            dma.email,
+            dma.emergency_contact,
+            dma.emergency_phone,
+            dma.lease_start_date,
+            dma.lease_end_date,
+            dma.lease_term_id,
+            dma.rent,
+            dma.deposit,
+            dma.payment_type_id,
+            dma.status,
+            dma.processor_id,
+            dma.processor_type,
+            dma.rejection_reason,
+            dma.processed_at,
+            dma.additional_info,
+            dma.create_time,
+            dma.update_time,
+            -- 关联信息
+            ri.room_number,
+            ai.name as apartment_name,
+            lt.name as lease_term_name,
+            pt.name as payment_type_name,
+            CASE 
+                WHEN dma.processor_type = 1 THEN su.name
+                WHEN dma.processor_type = 2 THEN ui.nickname
+                ELSE NULL
+            END as processor_name,
+            -- 房间图片URL（取第一张图片，item_type=2表示房间图片）
+            (SELECT gi.url FROM graph_info gi WHERE gi.item_type = 2 AND gi.item_id = ri.id AND gi.is_deleted = 0 LIMIT 1) as room_graph_url
+        FROM direct_move_in_application dma
+        LEFT JOIN room_info ri ON dma.room_id = ri.id AND ri.is_deleted = 0
+        LEFT JOIN apartment_info ai ON dma.apartment_id = ai.id AND ai.is_deleted = 0
+        LEFT JOIN lease_term lt ON dma.lease_term_id = lt.id AND lt.is_deleted = 0
+        LEFT JOIN payment_type pt ON dma.payment_type_id = pt.id AND pt.is_deleted = 0
+        LEFT JOIN system_user su ON dma.processor_id = su.id AND dma.processor_type = 1
+        LEFT JOIN user_info ui ON dma.processor_id = ui.id AND dma.processor_type = 2
+        WHERE dma.landlord_id = #{landlordId}
+          AND dma.is_deleted = 0
+        ORDER BY dma.create_time DESC
+    </select>
+
+    <!-- 根据ID查询申请详情 -->
+    <select id="selectApplicationDetailById" resultType="com.atguigu.lease.web.app.vo.application.DirectMoveInApplicationDetailVO">
+        SELECT 
+            dma.id,
+            dma.user_id,
+            dma.room_id,
+            dma.apartment_id,
+            dma.landlord_id,
+            dma.name,
+            dma.phone,
+            dma.identification_number,
+            dma.email,
+            dma.emergency_contact,
+            dma.emergency_phone,
+            dma.lease_start_date,
+            dma.lease_end_date,
+            dma.lease_term_id,
+            dma.rent,
+            dma.deposit,
+            dma.payment_type_id,
+            dma.status,
+            dma.processor_id,
+            dma.processor_type,
+            dma.rejection_reason,
+            dma.processed_at,
+            dma.additional_info,
+            dma.create_time,
+            dma.update_time,
+            -- 关联信息
+            ri.room_number,
+            ai.name as apartment_name,
+            lt.name as lease_term_name,
+            pt.name as payment_type_name,
+            CASE 
+                WHEN dma.processor_type = 1 THEN su.name
+                WHEN dma.processor_type = 2 THEN ui.nickname
+                ELSE NULL
+            END as processor_name,
+            -- 房间图片URL（取第一张图片，item_type=2表示房间图片）
+            (SELECT gi.url FROM graph_info gi WHERE gi.item_type = 2 AND gi.item_id = ri.id AND gi.is_deleted = 0 LIMIT 1) as room_graph_url
+        FROM direct_move_in_application dma
+        LEFT JOIN room_info ri ON dma.room_id = ri.id AND ri.is_deleted = 0
+        LEFT JOIN apartment_info ai ON dma.apartment_id = ai.id AND ai.is_deleted = 0
+        LEFT JOIN lease_term lt ON dma.lease_term_id = lt.id AND lt.is_deleted = 0
+        LEFT JOIN payment_type pt ON dma.payment_type_id = pt.id AND pt.is_deleted = 0
+        LEFT JOIN system_user su ON dma.processor_id = su.id AND dma.processor_type = 1
+        LEFT JOIN user_info ui ON dma.processor_id = ui.id AND dma.processor_type = 2
+        WHERE dma.id = #{id}
+          AND dma.is_deleted = 0
+    </select>
+
+    <!-- 查询用户的申请列表 -->
+    <select id="selectApplicationsByUserId" resultType="com.atguigu.lease.web.app.vo.application.DirectMoveInApplicationDetailVO">
+        SELECT 
+            dma.id,
+            dma.user_id,
+            dma.room_id,
+            dma.apartment_id,
+            dma.landlord_id,
+            dma.name,
+            dma.phone,
+            dma.identification_number,
+            dma.email,
+            dma.emergency_contact,
+            dma.emergency_phone,
+            dma.lease_start_date,
+            dma.lease_end_date,
+            dma.lease_term_id,
+            dma.rent,
+            dma.deposit,
+            dma.payment_type_id,
+            dma.status,
+            dma.processor_id,
+            dma.processor_type,
+            dma.rejection_reason,
+            dma.processed_at,
+            dma.additional_info,
+            dma.create_time,
+            dma.update_time,
+            -- 关联信息
+            ri.room_number,
+            ai.name as apartment_name,
+            lt.name as lease_term_name,
+            pt.name as payment_type_name,
+            CASE 
+                WHEN dma.processor_type = 1 THEN su.name
+                WHEN dma.processor_type = 2 THEN ui.nickname
+                ELSE NULL
+            END as processor_name,
+            -- 房间图片URL（取第一张图片，item_type=2表示房间图片）
+            (SELECT gi.url FROM graph_info gi WHERE gi.item_type = 2 AND gi.item_id = ri.id AND gi.is_deleted = 0 LIMIT 1) as room_graph_url
+        FROM direct_move_in_application dma
+        LEFT JOIN room_info ri ON dma.room_id = ri.id AND ri.is_deleted = 0
+        LEFT JOIN apartment_info ai ON dma.apartment_id = ai.id AND ai.is_deleted = 0
+        LEFT JOIN lease_term lt ON dma.lease_term_id = lt.id AND lt.is_deleted = 0
+        LEFT JOIN payment_type pt ON dma.payment_type_id = pt.id AND pt.is_deleted = 0
+        LEFT JOIN system_user su ON dma.processor_id = su.id AND dma.processor_type = 1
+        LEFT JOIN user_info ui ON dma.processor_id = ui.id AND dma.processor_type = 2
+        WHERE dma.user_id = #{userId}
+          AND dma.is_deleted = 0
+        ORDER BY dma.create_time DESC
+    </select>
+
+    <!-- 统计房东的申请数量 -->
+    <select id="countLandlordApplications" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM direct_move_in_application dma
+        WHERE dma.landlord_id = #{landlordId}
+          AND dma.is_deleted = 0
+    </select>
+
+</mapper>

@@ -1,0 +1,36 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景渐变 -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0.1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#bg)"/>
+  
+  <!-- 建筑群 -->
+  <rect x="80" y="120" width="40" height="100" fill="#4F46E5" opacity="0.8"/>
+  <rect x="130" y="100" width="35" height="120" fill="#6366F1" opacity="0.8"/>
+  <rect x="175" y="110" width="45" height="110" fill="#8B5CF6" opacity="0.8"/>
+  <rect x="230" y="90" width="40" height="130" fill="#A855F7" opacity="0.8"/>
+  <rect x="280" y="105" width="35" height="115" fill="#C084FC" opacity="0.8"/>
+  
+  <!-- 窗户 -->
+  <rect x="85" y="130" width="8" height="8" fill="#FFF" opacity="0.7"/>
+  <rect x="97" y="130" width="8" height="8" fill="#FFF" opacity="0.7"/>
+  <rect x="85" y="145" width="8" height="8" fill="#FFF" opacity="0.7"/>
+  <rect x="97" y="145" width="8" height="8" fill="#FFF" opacity="0.7"/>
+  
+  <!-- 云朵 -->
+  <circle cx="100" cy="50" r="15" fill="#FFF" opacity="0.6"/>
+  <circle cx="115" cy="50" r="20" fill="#FFF" opacity="0.6"/>
+  <circle cx="130" cy="50" r="15" fill="#FFF" opacity="0.6"/>
+  
+  <circle cx="280" cy="40" r="12" fill="#FFF" opacity="0.5"/>
+  <circle cx="292" cy="40" r="16" fill="#FFF" opacity="0.5"/>
+  <circle cx="304" cy="40" r="12" fill="#FFF" opacity="0.5"/>
+  
+  <!-- 标题 -->
+  <text x="200" y="250" text-anchor="middle" fill="#1F2937" font-family="Arial" font-size="28" font-weight="bold">智慧租房</text>
+  <text x="200" y="275" text-anchor="middle" fill="#6B7280" font-family="Arial" font-size="16">专业 · 高效 · 可信赖</text>
+</svg>

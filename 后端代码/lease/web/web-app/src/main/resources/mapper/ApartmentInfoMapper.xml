@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.lease.web.app.mapper.ApartmentInfoMapper">
+
+    <!-- 房东分页查询公寓列表 -->
+    <select id="pageItem" resultType="com.atguigu.lease.web.app.vo.apartment.ApartmentItemVo">
+        SELECT
+            ai.id,
+            ai.name,
+            ai.introduction,
+            ai.district_id,
+            ai.district_name,
+            ai.city_id,
+            ai.city_name,
+            ai.province_id,
+            ai.province_name,
+            ai.address_detail,
+            ai.latitude,
+            ai.longitude,
+            ai.phone,
+            ai.landlord_id,
+            ai.is_release,
+            ai.create_time,
+            ai.update_time,
+            (SELECT MIN(ri.rent) FROM room_info ri WHERE ri.apartment_id = ai.id AND ri.is_deleted = 0) as min_rent
+        FROM apartment_info ai
+        WHERE ai.is_deleted = 0
+        <if test="queryVo.landlordId != null">
+            AND ai.landlord_id = #{queryVo.landlordId}
+        </if>
+        <if test="queryVo.name != null and queryVo.name != ''">
+            AND ai.name LIKE CONCAT('%', #{queryVo.name}, '%')
+        </if>
+        <if test="queryVo.provinceId != null">
+            AND ai.province_id = #{queryVo.provinceId}
+        </if>
+        <if test="queryVo.cityId != null">
+            AND ai.city_id = #{queryVo.cityId}
+        </if>
+        <if test="queryVo.districtId != null">
+            AND ai.district_id = #{queryVo.districtId}
+        </if>
+        <if test="queryVo.isRelease != null">
+            AND ai.is_release = #{queryVo.isRelease}
+        </if>
+        ORDER BY ai.create_time DESC
+    </select>
+
+    <!-- 查询公寓详细信息（包含地区信息） -->
+    <select id="selectDetailById" resultType="com.atguigu.lease.web.app.vo.apartment.ApartmentDetailVo">
+        SELECT 
+            ai.id,
+            ai.name,
+            ai.introduction,
+            ai.district_id as districtId,
+            ai.city_id as cityId,
+            ai.province_id as provinceId,
+            ai.address_detail as addressDetail,
+            ai.latitude,
+            ai.longitude,
+            ai.phone,
+            ai.landlord_id as landlordId,
+            ai.is_release as isRelease,
+            ai.create_time as createTime,
+            ai.update_time as updateTime,
+            p.name as provinceName,
+            c.name as cityName,
+            d.name as districtName,
+            (SELECT MIN(ri.rent) FROM room_info ri WHERE ri.apartment_id = ai.id AND ri.is_deleted = 0) as minRent
+        FROM apartment_info ai
+        LEFT JOIN province_info p ON ai.province_id = p.id
+        LEFT JOIN city_info c ON ai.city_id = c.id
+        LEFT JOIN district_info d ON ai.district_id = d.id
+        WHERE ai.id = #{id} AND ai.is_deleted = 0
+    </select>
+
+    <!-- 查询公寓关联的杂费信息 -->
+    <select id="selectFeeValuesByApartmentId" resultType="com.atguigu.lease.web.app.vo.fee.FeeValueVo">
+        SELECT 
+            fv.id,
+            fv.name,
+            fv.unit,
+            fv.fee_key_id as feeKeyId,
+            fv.creator_type as creatorType,
+            fv.creator_id as creatorId,
+            fk.name as feeKeyName
+        FROM apartment_fee_value afv
+        INNER JOIN fee_value fv ON afv.fee_value_id = fv.id
+        INNER JOIN fee_key fk ON fv.fee_key_id = fk.id
+        WHERE afv.apartment_id = #{apartmentId} 
+        AND afv.is_deleted = 0 
+        AND fv.is_deleted = 0
+        AND fk.is_deleted = 0
+        ORDER BY fk.name ASC, fv.name ASC
+    </select>
+
+    <!-- 查询公寓关联的图片信息 -->
+    <select id="selectImagesByApartmentId" resultType="com.atguigu.lease.web.app.vo.graph.GraphVo">
+        SELECT 
+            gi.id,
+            gi.name,
+            gi.url
+        FROM graph_info gi
+        WHERE gi.item_type = 1 
+        AND gi.item_id = #{apartmentId}
+        AND gi.is_deleted = 0
+        ORDER BY gi.create_time ASC
+    </select>
+
+</mapper>
